@@ -1,10 +1,10 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "http://localhost:4000/api", // your backend URL
+  baseURL: import.meta.env.REACT_APP_BACKEND_URL + "/api", 
 });
 
-// Automatically attach token if exists
+
 API.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
   if (token) {
