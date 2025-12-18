@@ -9,7 +9,6 @@ import { Write } from '../pages/Write';
 import AuthPage from '../pages/Login';
 import { ProtectedRoute } from '../components/shared/route/ProtectedRoute';
 import { GuestRoute } from '../components/shared/route/GuestRoute';
-import { ProtectedLayout } from '../components/shared/route/ProtectedLayout';
 
 const router = createBrowserRouter([
   {
