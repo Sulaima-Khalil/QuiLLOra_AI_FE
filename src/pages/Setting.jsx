@@ -1,44 +1,39 @@
 import { Header } from '../components/shared/Header';
 import { Sidebar } from '../components/shared/Sidebar';
 import { Account } from '../components/Account/Account';
-export const Setting = () => {
-  const pages =[
-    {
-      icon:"",
-      title:"Acccount",
-      path:'/Setting'
-    }, {
-      icon:"",
-      title:"Notifications",
-      path:''
-    },
-     {
-      icon:"",
-      title:"Appearance",
-      path:''
-    },
-     {
-      icon:"",
-      title:"Security",
-      path:''
-    },
-  ]
-  return (
-    <div style={{position:'relative',minHeight:'94.5vh'}}>
-      <Header 
-       title="Setting"
-       description="Manage your account preferences and appearance...."
-      />
-      <div style={{paddingTop:30}}>
-        <Sidebar  content={pages} activeIndex={false} activeIndicator={false}/>
-      </div>
-      
+import { Notifications } from '../components/setting/Notification';
+import { Appearance } from '../components/setting/Appearance';
+import { Security } from '../components/setting/Security';
+import { useState } from 'react';
 
-       <div style={{ position:'absolute',top:'20%',left:'50%'}}>
-        <Account />
-       </div>
-       
-     
+export const Setting = () => {
+  const pages = [
+    { title: "Account", component: <Account /> },
+    { title: "Notifications", component: <Notifications /> },
+    { title: "Appearance", component: <Appearance /> },
+    { title: "Security", component: <Security /> },
+  ];
+
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  return (
+    <div style={{ position: 'relative', minHeight: '94.5vh' }}>
+      <Header
+        title="Setting"
+        description="Manage your account preferences and appearance..."
+      />
+
+      <div style={{ display: 'flex', paddingTop: 30 }}>
+        <Sidebar
+          content={pages.map(p => ({ title: p.title, path: '' }))}
+          activeIndex={activeIndex}
+          onItemClick={setActiveIndex}
+          activeIndicator={true}
+        />
+        <div style={{ flex: 1, paddingLeft: 20 }}>
+          {pages[activeIndex].component}
+        </div>
+      </div>
     </div>
-  )
-}
+  );
+};

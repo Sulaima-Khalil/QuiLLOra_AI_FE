@@ -1,9 +1,13 @@
 import { MdLogout } from "react-icons/md";
+import { logoutUser } from "../../utils/auth";
 
 export const LogoutSection = () => {
-   
+   const handleLogout = () => {
+         logoutUser();
+   }
   return (
-    <div style={{
+    <div  onClick={handleLogout}
+    style={{
         display:'flex',
         gap:12 ,
         color:'white',
@@ -13,7 +17,7 @@ export const LogoutSection = () => {
         <span style={{fontSize:24}}>
             <MdLogout />
         </span>
-        <span>
+        <span style={{cursor:'pointer'}}>
             Sign out
         </span>
     </div>

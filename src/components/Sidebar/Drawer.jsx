@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+
 import { CiHome } from "react-icons/ci";
 import { FiPenTool } from "react-icons/fi";
 import { IoBookOutline } from "react-icons/io5";
@@ -24,7 +23,7 @@ const Drawer = () => {
         {
             icon: <IoBookOutline />,
             title: "My Article",
-            path:'MyArticle'
+            path:'my-article'
         },
         {
             icon: <IoPersonOutline />,
