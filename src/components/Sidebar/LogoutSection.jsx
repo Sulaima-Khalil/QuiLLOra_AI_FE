@@ -1,9 +1,11 @@
 import { MdLogout } from "react-icons/md";
 import { logoutUser } from "../../utils/auth";
-
+import { useNavigate } from "react-router-dom";
 export const LogoutSection = () => {
+  const navigate = useNavigate();
    const handleLogout = () => {
          logoutUser();
+         navigate('/login')
    }
   return (
     <div  onClick={handleLogout}

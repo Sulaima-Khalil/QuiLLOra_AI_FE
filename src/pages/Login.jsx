@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Mail, Lock, User, Feather } from 'lucide-react';
+import {useNavigate } from 'react-router-dom'
 import { registerUser, loginUser, logoutUser } from '../utils/auth';
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -9,7 +10,7 @@ export default function AuthPage() {
     password: '',
     confirmPassword: ''
   });
-
+ const navigate = useNavigate();
 const handleSubmit = async (e) => {
   e.preventDefault();
 
@@ -17,7 +18,7 @@ const handleSubmit = async (e) => {
     if (isLogin) {
       const data = await loginUser({ email: formData.email, password: formData.password });
       console.log("Logged in:", data);
-      window.location.href = "/Discover";
+      navigate('/Discover')
     } else {
       if (formData.password !== formData.confirmPassword) {
         alert("Passwords do not match!");
@@ -26,7 +27,7 @@ const handleSubmit = async (e) => {
 
       const data = await registerUser({ name: formData.name, email: formData.email, password: formData.password });
       console.log("Registered:", data);
-      window.location.href = "/login";
+      navigate ("/login")
     }
   } catch (err) {
     console.error(err);
