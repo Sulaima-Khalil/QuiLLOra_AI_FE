@@ -1,4 +1,4 @@
-import React from 'react'
+
 import { Header } from '../shared/Header';
 import { useNavigate } from 'react-router-dom';
 export const ArticleHeader = () => {
@@ -12,7 +12,7 @@ export const ArticleHeader = () => {
          title="Article"
          description="Manage your published work and drafts..."
          isButton={true}
-         content="New Article"
+         content="+ New Article"
          handleClick={handleClick}
         />
     </div>

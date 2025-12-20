@@ -9,7 +9,7 @@ import design2 from '../../assets/design2.png';
 import engineering from '../../assets/engineering.png';
 import { Card } from '../shared/Card';
 
-export const ArticleCards = () => {
+export const ArticleCards = ({ activetab }) => {
   const cardsData = [
   {
     img: ai1,
@@ -105,10 +105,15 @@ export const ArticleCards = () => {
 ];
 
 
-
+  const filteredCards =cardsData.filter((card) => {
+    if(activetab == 0) return true;
+    if(activetab == 1) return card.status == "Published";
+    if(activetab == 2) return card.status == "Draft";
+    return true;
+  })
   return (
    <div>
- <Card  cardsData={cardsData} isArticle={true}/>
+ <Card  cardsData={filteredCards} isArticle={true}/>
    </div>
   )
 }

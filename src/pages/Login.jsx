@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Mail, Lock, User, Feather } from 'lucide-react';
 import {useNavigate } from 'react-router-dom'
-import { registerUser, loginUser, logoutUser } from '../utils/auth';
+import { registerUser, loginUser } from '../utils/auth';
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
