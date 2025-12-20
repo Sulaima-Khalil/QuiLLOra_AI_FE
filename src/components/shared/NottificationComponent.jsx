@@ -7,7 +7,7 @@ export const NotificationComponent = () => {
 
   const content = [
     {
-      icon: <HiOutlineMail size={20} />,
+      icon: <HiOutlineMail size={20} background="#7c5cff" />,
       title: "Email Notifications",
       description: "Manage your email preferences",
       child: [
@@ -26,7 +26,7 @@ export const NotificationComponent = () => {
       ],
     },
     {
-      icon: <MdNotifications size={20} />,
+      icon: <MdNotifications size={20} background="#7c5cff" />,
       title: "Push Notifications",
       description: "Manage your mobile and web push alerts",
       child: [
@@ -89,7 +89,7 @@ export const NotificationComponent = () => {
               {item.icon}
             </div>
 
-            <div>
+            <div style={{ display:'flex', flexDirection:'column', gap:8}}>
               <div style={{ fontSize: 18, fontWeight: 600 }}>
                 {item.title}
               </div>

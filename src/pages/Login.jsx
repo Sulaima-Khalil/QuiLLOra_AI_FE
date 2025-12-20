@@ -50,7 +50,6 @@ const handleSubmit = async (e) => {
   return (
     <div style={{
       height: '100vh',
-      // background: 'linear-gradient(135deg, #e0e7ff 0%, #f5f3ff 50%, #fce7f3 100%)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -133,7 +132,7 @@ const handleSubmit = async (e) => {
                   display: 'block',
                   fontSize: '14px',
                   fontWeight: '500',
-                  color: '#374151',
+                  color: 'white',
                   marginBottom: '8px'
                 }}>
                   Full Name
@@ -184,7 +183,7 @@ const handleSubmit = async (e) => {
                 display: 'block',
                 fontSize: '14px',
                 fontWeight: '500',
-                color: '#374151',
+                color: 'white',
                 marginBottom: '8px'
               }}>
                 Email Address
@@ -234,7 +233,7 @@ const handleSubmit = async (e) => {
                 display: 'block',
                 fontSize: '14px',
                 fontWeight: '500',
-                color: '#374151',
+                color: 'white',
                 marginBottom: '8px'
               }}>
                 Password
@@ -285,7 +284,7 @@ const handleSubmit = async (e) => {
                   display: 'block',
                   fontSize: '14px',
                   fontWeight: '500',
-                  color: '#374151',
+                  color: 'white',
                   marginBottom: '8px'
                 }}>
                   Confirm Password
