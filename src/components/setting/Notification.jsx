@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { Section, ToggleItem, SaveButton } from "../shared/SettingComponent";
-
+import { SaveButton } from "../shared/SettingComponent";
+import { Header } from '../shared/Header';
+import { NotificationComponent } from '../shared/NottificationComponent'
 export const Notifications = () => {
   const [emailAlerts, setEmailAlerts] = useState(true);
   const [pushAlerts, setPushAlerts] = useState(false);
@@ -10,20 +11,17 @@ export const Notifications = () => {
   };
 
   return (
-    <div>
-      <Section title="Notification Settings">
-        <ToggleItem
-          label="Email Alerts"
-          checked={emailAlerts}
-          onChange={() => setEmailAlerts(!emailAlerts)}
-        />
-        <ToggleItem
-          label="Push Notifications"
-          checked={pushAlerts}
-          onChange={() => setPushAlerts(!pushAlerts)}
-        />
+   <div style={{ maxWidth:400 , height:'auto', border:'2px solid gray', padding:20 ,borderRadius:12 ,background:'black' }}>
+      <Header 
+       title="Notifications"
+       description="Choose what you want to be notified about....."
+      />
+    <NotificationComponent />
+
+        
         <SaveButton onClick={handleSave} />
-      </Section>
-    </div>
+      </div>
+   
   );
 };
+

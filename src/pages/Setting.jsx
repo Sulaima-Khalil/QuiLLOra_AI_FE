@@ -1,20 +1,19 @@
 import { Header } from '../components/shared/Header';
 import { Sidebar } from '../components/shared/Sidebar';
-import { Account } from '../components/Account/Account';
-import { Notifications } from '../components/setting/Notification';
-import { Appearance } from '../components/setting/Appearance';
-import { Security } from '../components/setting/Security';
 import { useState } from 'react';
-
+import { Outlet } from 'react-router-dom';
+import { MdOutlinePerson } from "react-icons/md";
+import { IoLockClosedOutline } from "react-icons/io5";
+import { MdNotifications } from "react-icons/md";
+import { IoColorPalette } from "react-icons/io5";
 export const Setting = () => {
   const pages = [
-    { title: "Account", component: <Account /> },
-    { title: "Notifications", component: <Notifications /> },
-    { title: "Appearance", component: <Appearance /> },
-    { title: "Security", component: <Security /> },
+    { title: "Account", path: 'account' ,icon: <MdOutlinePerson />},
+    { title: "Notifications", path: 'notification' ,icon: <MdNotifications />},
+    { title: "Appearance", path: 'appearance', icon: <IoColorPalette />},
+    { title: "Security", path: 'security', icon: <IoLockClosedOutline />},
   ];
 
-  const [activeIndex, setActiveIndex] = useState(0);
 
   return (
     <div style={{ position: 'relative', minHeight: '94.5vh' }}>
@@ -24,15 +23,11 @@ export const Setting = () => {
       />
 
       <div style={{ display: 'flex', paddingTop: 30 }}>
-        <Sidebar
-          content={pages.map(p => ({ title: p.title, path: '' }))}
-          activeIndex={activeIndex}
-          onItemClick={setActiveIndex}
-          activeIndicator={true}
-        />
-        <div style={{ flex: 1, paddingLeft: 20 }}>
-          {pages[activeIndex].component}
-        </div>
+        <Sidebar  content={pages}  activeIndicator={true}/>
+
+      <div style={{ flex: 1, paddingLeft: 20, position:'absolute', top:'12%', left:'50%', minWidth:450 }}>
+          <Outlet />
+      </div>
       </div>
     </div>
   );

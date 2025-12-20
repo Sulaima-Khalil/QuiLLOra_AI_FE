@@ -9,6 +9,11 @@ import { Write } from '../pages/Write';
 import AuthPage from '../pages/Login';
 import { ProtectedRoute } from '../components/shared/route/ProtectedRoute';
 import { GuestRoute } from '../components/shared/route/GuestRoute';
+import { Account } from '../components/setting/Account';
+import { Notifications } from '../components/setting/Notification';
+import { Appearance } from '../components/setting/Appearance';
+import { Security } from '../components/setting/Security';
+
 
 const router = createBrowserRouter([
   {
@@ -27,37 +32,28 @@ const router = createBrowserRouter([
       </ProtectedRoute>
     ),
     children: [
-      {
-        index: true,
-        element: <Discover />,
-      },
-      {
-        path: 'discover',
-        element: <Discover />,
-      },
-      {
-        path: 'profile',
-        element: <Profile />,
-      },
+      { index: true, element: <Discover /> },
+      { path: 'discover', element: <Discover /> },
+      { path: 'profile', element: <Profile /> },
+      { path: 'my-article', element: <MyArticle /> },
+      { path: 'write', element: <Write /> },
+
+     
       {
         path: 'setting',
         element: <Setting />,
-      },
-      {
-        path: 'my-article',
-        element: <MyArticle />,
-      },
-      {
-        path: 'write',
-        element: <Write />,
+        children: [
+          { index: true, element: <Account /> }, 
+          { path: 'account', element: <Account /> },
+          { path: 'notification', element: <Notifications /> },
+          { path: 'appearance', element: <Appearance /> },
+          { path: 'security', element: <Security /> },
+        ],
       },
     ],
-  },
-  // Optional: Redirect root to login or discover based on auth
-  {
-    path: '/',
-    element: <div>Loading...</div>, // या एक redirect component
   },
 ]);
 
 export default router;
+
+

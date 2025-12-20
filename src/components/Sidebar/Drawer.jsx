@@ -33,14 +33,14 @@ const Drawer = () => {
         {
             icon: <IoSettingsOutline />,
             title: "Setting" ,
-            path:'Setting'
+            path:'setting'
         }
     ];
 
 
     return (
         <div>
-           <Sidebar content={DrawerContent} />
+           <Sidebar content={DrawerContent} activeIndicator={true} ActiveIndex={true}/>
         
         </div>
     );

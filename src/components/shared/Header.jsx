@@ -28,7 +28,7 @@ export const Header = ({handleClick ,isButton , isDiscover, title, description, 
 )}
 {isButton && (
   
-       <button style={{background:'black', width:120,borderRadius:12 ,height:37}} onClick={handleClick}>
+       <button style={{background:'#7c5cff', width:120, borderRadius:6 ,height:37}} onClick={handleClick}>
               {content}
         </button>
  

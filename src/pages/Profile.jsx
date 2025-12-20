@@ -56,14 +56,14 @@ const getInitials=(name)=>{
   return (
     <div>
       <div style={{position:'relative', paddingBottom:70}}>
-        <div style={{width:'object-cover',height:300 ,background:'#05214eff',position:'relative',borderRadius:12}}></div>
+        <div style={{width:'object-cover',height:300 ,background:'#4422c9ff',position:'relative',borderRadius:12}}></div>
              
               <div 
                 style={{
                     width: 130,
                     height: 80,
                     borderRadius: 12,
-                    backgroundColor: "#165fd4ff", 
+                    backgroundColor: "#7c5cff", 
                     color: "white",
                     display: "flex",
                     alignItems: "center",

@@ -5,7 +5,7 @@ export const Sidebar = () => {
   return (
     <div style={{
       width: 350,
-      background: '#1e293b',
+      background: 'black',
       display: 'flex',
       flexDirection: 'column',
       gap: 10,

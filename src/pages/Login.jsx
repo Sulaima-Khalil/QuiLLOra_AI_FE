@@ -50,14 +50,14 @@ const handleSubmit = async (e) => {
   return (
     <div style={{
       height: '100vh',
-      background: 'linear-gradient(135deg, #e0e7ff 0%, #f5f3ff 50%, #fce7f3 100%)',
+      // background: 'linear-gradient(135deg, #e0e7ff 0%, #f5f3ff 50%, #fce7f3 100%)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
     }}>
       <div style={{
         width: '100%',
-        maxWidth: '400px'
+        maxWidth: '400px',
       }}>
         {/* Logo and Header */}
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
@@ -72,12 +72,11 @@ const handleSubmit = async (e) => {
             marginBottom: '16px',
             boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
           }}>
-            <Feather style={{ width: '32px', height: '32px', color: '#ffffff' }} />
+            <Feather style={{ width: '32px', height: '32px', color: '#ffffff' ,background:'#4f46e5'}} />
           </div>
           <h1 style={{
             fontSize: '30px',
             fontWeight: '700',
-            color: '#1f2937',
             marginBottom: '8px'
           }}>Lumina</h1>
           <p style={{ color: '#4b5563' }}>Your creative writing companion</p>
@@ -85,7 +84,7 @@ const handleSubmit = async (e) => {
 
         {/* Auth Card */}
         <div style={{
-          backgroundColor: '#ffffff',
+          border:'2px solid gray',
           borderRadius: '16px',
           boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
           padding: '32px'
@@ -159,7 +158,6 @@ const handleSubmit = async (e) => {
                       paddingLeft: '40px',
                       paddingRight: '16px',
                       paddingTop: '12px',
-                      color:"black",
                       paddingBottom: '12px',
                       border: '1px solid #d1d5db',
                       borderRadius: '8px',
@@ -211,7 +209,6 @@ const handleSubmit = async (e) => {
                     paddingLeft: '40px',
                     paddingRight: '16px',
                     paddingTop: '12px',
-                    color:"black",
                     paddingBottom: '12px',
                     border: '1px solid #d1d5db',
                     borderRadius: '8px',
@@ -262,7 +259,6 @@ const handleSubmit = async (e) => {
                     paddingLeft: '40px',
                     paddingRight: '16px',
                     paddingTop: '12px',
-                    color:"black",
                     paddingBottom: '12px',
                     border: '1px solid #d1d5db',
                     borderRadius: '8px',
@@ -315,7 +311,6 @@ const handleSubmit = async (e) => {
                       paddingRight: '16px',
                       paddingTop: '12px',
                       paddingBottom: '12px',
-                      color:"black",
                       border: '1px solid #d1d5db',
                       borderRadius: '8px',
                       outline: 'none',

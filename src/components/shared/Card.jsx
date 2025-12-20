@@ -21,6 +21,12 @@ const getInitials=(name)=>{
             gap:8,
             width:360,
             border:'2px solid gray',
+            // borderImage: "linear-gradient(135deg, #7c5cff, #a78bfa)",
+            // background: `
+            //    linear-gradient(#0b0b0b, #0b0b0b) padding-box,
+            //    linear-gradient(135deg, #06011dff, #5a3cb2ff) border-box
+            //  `,
+            //  border: '2px solid transparent',
             borderRadius:16
             }}>
               <div style={{ width:'100%',position:'relative'}}>
@@ -99,7 +105,7 @@ const getInitials=(name)=>{
                     width: 35,
                     height: 35,
                     borderRadius: "50%",
-                    backgroundColor: "#6fa1f1ff", 
+                    backgroundColor: "#7c5cff", 
                     color: "white",
                     display: "flex",
                     alignItems: "center",

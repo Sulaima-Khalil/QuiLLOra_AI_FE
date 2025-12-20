@@ -12,7 +12,7 @@ export const Sidebar = ({ content , ActiveIndex, activeIndicator}) => {
      <div style={{
             display: 'flex',
             flexDirection: 'column',
-            backgroundColor: '#1e293b',
+            // backgroundColor: '#1e293b',
             padding: '16px 0',
         }}>
             {content.map((item, index) => (
@@ -27,16 +27,16 @@ export const Sidebar = ({ content , ActiveIndex, activeIndicator}) => {
                         width: 250,
                         padding: '12px 24px',
                         margin: '4px 12px',
-                        backgroundColor: activeIndex === index ? '#334155' : 'transparent',
+                        backgroundColor: activeIndex === index ? 'black' : 'black',
                         borderRadius: '8px',
                         border: activeIndex === index ? '1px solid #475569' : '1px solid transparent',
                         cursor: 'pointer',
                         transition: 'all 0.3s ease',
                         position: 'relative',
                         overflow: 'hidden',
-                        '&:hover': {
-                            backgroundColor: activeIndex !== index ? '#2d3748' : '#334155',
-                        }
+                        // '&:hover': {
+                        //     backgroundColor: activeIndex !== index ? '#2d3748' : '#334155',
+                        // }
                     }}
                 >
                     <div style={{
@@ -45,10 +45,12 @@ export const Sidebar = ({ content , ActiveIndex, activeIndicator}) => {
                         gap: '12px',
                         fontSize: '18px',
                         fontWeight: activeIndex === index ? '500' : '400',
+                        // backgroundColor: activeIndex === index ? '#334155' : 'black',
                     }}>
+                       
+
                         <span style={{
                             fontSize: '22px',
-                            color: activeIndex === index ? '#60a5fa' : '#94a3b8',
                         }}>
                             {item.icon}
                         </span>
