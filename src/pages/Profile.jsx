@@ -1,13 +1,7 @@
-import React from 'react'
-// import ai1 from '../../assets';
-// import ai2 from '../../../assets/ai2.png';
-// import rain1 from '../../../assets/rain1.png';
-// import rain2 from '../../../assets/rain2.png';
-// import rain3 from '../../../assets/rain3.png';
-// import rain4 from '../../../assets/rain4.png';
-// import design1 from '../../../assets/design1.png';
-// import design2 from '../../../assets/design2.png';
-// import engineering from '../../../assets/engineering.png';
+
+import ai1 from '../assets/ai1.png';
+import rain1 from '../assets/rain1.png';
+import design1 from '../assets/design1.png';
 import { Card } from '../components/shared/Card';
 import { Header } from '../components/shared/Header';
 import { ProfileCards } from '../components/profile/ProfileCards';
@@ -15,7 +9,7 @@ import { ProfileCards } from '../components/profile/ProfileCards';
 export const Profile = () => {
    const cardsData = [
   {
-    // img: ai1,
+    img: ai1,
     heading: "How Generative AI Is Reshaping the Future of Creative Work",
     description: "Generative AI is changing how creatives approach design, writing, and multimedia projects. Discover the opportunities and challenges it brings.",
     title: "AI",
@@ -25,7 +19,7 @@ export const Profile = () => {
     status:"Published"
   },
    {
-    // img: design1,
+    img: design1,
     heading: "User Interviews: The Art of Asking Better Questions",
     description: "Conducting effective user interviews requires skill. Learn the key techniques to get actionable insights.",
     title: "UX Research",
@@ -35,7 +29,7 @@ export const Profile = () => {
     status:"Draft"
   },
   {
-    // img: rain1,
+    img: rain1,
     heading: "Design Systems: Why Every Brand Needs One",
     description: "A design system ensures consistency across products and teams. Learn how to build one that scales effectively.",
     title: "Design",
@@ -56,7 +50,7 @@ const getInitials=(name)=>{
   return (
     <div>
       <div style={{position:'relative', paddingBottom:70}}>
-        <div style={{width:'object-cover',height:300 ,background:'#4422c9ff',position:'relative',borderRadius:12}}></div>
+        <div style={{width:'object-cover',height:300 ,background:'#4057cbff',position:'relative',borderRadius:12}}></div>
              
               <div 
                 style={{

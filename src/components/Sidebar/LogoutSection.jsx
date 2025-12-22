@@ -14,7 +14,7 @@ export const LogoutSection = () => {
         gap:12 ,
         color:'white',
         padding:40,
-        borderTop:'2px solid gray'
+        borderTop:'2px solid #1F1F1F'
         }}>
         <span style={{fontSize:24}}>
             <MdLogout />

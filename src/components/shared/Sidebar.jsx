@@ -29,7 +29,7 @@ export const Sidebar = ({ content , ActiveIndex, activeIndicator}) => {
                         margin: '4px 12px',
                         backgroundColor: activeIndex === index ? 'black' : 'black',
                         borderRadius: '8px',
-                        border: activeIndex === index ? '1px solid #475569' : '1px solid transparent',
+                        border: activeIndex === index ? '1px solid #7c5cff' : '1px solid transparent',
                         cursor: 'pointer',
                         transition: 'all 0.3s ease',
                         position: 'relative',
@@ -63,10 +63,10 @@ export const Sidebar = ({ content , ActiveIndex, activeIndicator}) => {
                         width: '8px',
                         height: '8px',
                         borderRadius: '50%',
-                        backgroundColor: activeIndex === index ? '#10b981' : 'transparent',
+                        backgroundColor: activeIndex === index ? '#7c5cff' : 'transparent',
                         opacity: activeIndex === index ? 1 : 0,
                         transition: 'all 0.3s ease',
-                        boxShadow: activeIndex === index ? '0 0 8px #10b981' : 'none'
+                        boxShadow: activeIndex === index ? '0 0 8px #7c5cff' : 'none'
                     }}></div>
                     )}
                   
@@ -78,7 +78,7 @@ export const Sidebar = ({ content , ActiveIndex, activeIndicator}) => {
                             transform: 'translateY(-50%)',
                             width: '4px',
                             height: '60%',
-                            backgroundColor: '#3b82f6',
+                            backgroundColor: '#7c5cff',
                             borderRadius: '0 4px 4px 0'
                         }}></div>
                     )}

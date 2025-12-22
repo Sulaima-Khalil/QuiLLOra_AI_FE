@@ -10,25 +10,22 @@ const getInitials=(name)=>{
   return words[0][0].toUpperCase() + words[1][0].toUpperCase();
 }
   return (
-    <div style={{display:'flex',gap:16, flexWrap:'wrap'}}>
+    <div style={{display:'flex',gap:10, flexWrap:'wrap'}} >
        {cardsData.map((item ,index)=>(
-      <div 
+      <div className="card" 
         key={index} 
         style={{
             display:'flex',
             flexDirection:'column',
             paddingBottom:16,
             gap:8,
-            width:360,
-            border:'2px solid gray',
-            // borderImage: "linear-gradient(135deg, #7c5cff, #a78bfa)",
-            // background: `
-            //    linear-gradient(#0b0b0b, #0b0b0b) padding-box,
-            //    linear-gradient(135deg, #06011dff, #5a3cb2ff) border-box
-            //  `,
-            //  border: '2px solid transparent',
-            borderRadius:16
-            }}>
+            padding:2,
+            overflow:'hidden',
+            width:'360px',
+            border:'2px solid #1F1F1F' ,
+            borderRadius:16,
+             }}
+             >
               <div style={{ width:'100%',position:'relative'}}>
                 <span 
                 style={{
@@ -67,9 +64,9 @@ const getInitials=(name)=>{
             <img
              src={item.img} 
              style={{
-                width:360,
+                width:'100%',
                 height:250 , 
-                borderRadius:16
+                objectFit:'cover',
                 }}/>
                 </div>
 
@@ -89,8 +86,8 @@ const getInitials=(name)=>{
                 height:120, 
                 alignItems:'center'
                  }}>
-            <h3>{item.heading}</h3>
-            <p>{item.description}</p>
+            <h3><a>{item.heading}</a></h3>
+            <a>{item.description}</a>
         </div>
         <div 
             style={{
@@ -98,7 +95,8 @@ const getInitials=(name)=>{
                 gap:2 ,
                 height:40 ,
                 alignItems:'center',
-                paddingLeft:12
+                paddingLeft:12,
+                paddingBottom:8,
                 }}>
             <div 
                 style={{

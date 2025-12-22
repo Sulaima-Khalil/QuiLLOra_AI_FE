@@ -21,7 +21,7 @@ export const Appearance = () => {
     <div style={{
       maxWidth: 400,
       height: 'auto',
-      border: '2px solid gray',
+      border: '2px solid #1F1F1F',
       padding: 20,
       borderRadius: 12,
       fontFamily: "Inter, sans-serif"

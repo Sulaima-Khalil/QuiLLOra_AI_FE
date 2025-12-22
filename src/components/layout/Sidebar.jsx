@@ -9,7 +9,7 @@ export const Sidebar = () => {
       display: 'flex',
       flexDirection: 'column',
       gap: 10,
-      borderRight: '2px solid gray',
+      borderRight: '2px solid #1F1F1F',
       height: '100vh' ,
       justifyContent:'space-between',
       position:'fixed',    

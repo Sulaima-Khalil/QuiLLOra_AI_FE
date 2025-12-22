@@ -13,7 +13,7 @@ export const Security = () => {
 
 
   return (
-    <div style={{ maxWidth:400 , height:'auto', border:'2px solid gray', padding:20 ,borderRadius:12 }}>
+    <div style={{ maxWidth:400 , height:'auto', border:'2px solid #1F1F1F', padding:20 ,borderRadius:12 }}>
       <Header 
       title="Security"
       description="Protect your account and manage access..."

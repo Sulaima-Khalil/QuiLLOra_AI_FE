@@ -6,7 +6,7 @@ export const Header = ({handleClick ,isButton , isDiscover, title, description, 
 
     <div style={{display:'flex', alignItems:'center', justifyContent:'space-between'}}>
         <div>
-           <h1 style={{paddingBottom:16}}>{title}</h1>
+           <h1 style={{paddingBottom:16 ,'&:hover':{color:'#7c5cff'}}}>{title}</h1>
            <p>{description}</p>
         </div>
 {isDiscover &&(
@@ -15,11 +15,11 @@ export const Header = ({handleClick ,isButton , isDiscover, title, description, 
              style={{
                     width:300,
                     height:40,
-                    border:'2px solid gray',
+                    border:'2px solid #2B2B2B',
+                    color:'white',
                     borderRadius:40,
                     padding:18,
                     background:'black',
-                    color:'white'
             }}/>
             <button style={{background:'black', width:47,borderRadius:12 ,height:37}} onClick={handleClick}>
               <HiOutlineAdjustmentsHorizontal style={{fontSize:24 }}/>

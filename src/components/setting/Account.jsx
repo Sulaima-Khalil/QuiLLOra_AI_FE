@@ -8,7 +8,7 @@ export const Account = () => {
   return words[0][0].toUpperCase() + words[1][0].toUpperCase();
 }
   return (
-    <div style={{ maxWidth:400 , height:'auto', border:'2px solid gray', padding:20 ,borderRadius:12 }}>
+    <div style={{ maxWidth:400 , height:'auto', border:'2px solid #1F1F1F', padding:20 ,borderRadius:12 }}>
       <Header 
       title="Profile Information"
       description="Update your photo and personal details..."

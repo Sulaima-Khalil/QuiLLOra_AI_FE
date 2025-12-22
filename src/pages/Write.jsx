@@ -5,7 +5,7 @@ export const Write = () => {
   return (
     <div style={{ display:'flex', flexDirection:'column', gap:30,margin:30}}>
       <div style={{display:'flex', justifyContent:'space-between',alignItems:'center'}}>
-        <h2><span>Draft / </span>Untitled Article</h2>
+        <h2><span style={{fontSize:18}}>Draft  </span>/ Untitled Article</h2>
 
         <div style={{display:'flex',gap:40}}>
           {/* <button style={{border:'none', background:'black'}}> Preview</button> */}
