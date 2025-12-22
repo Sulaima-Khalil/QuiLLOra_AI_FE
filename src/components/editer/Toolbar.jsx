@@ -1,3 +1,8 @@
+import { VscItalic } from "react-icons/vsc";
+import { PiTextBBold } from "react-icons/pi";
+import { FaListUl } from "react-icons/fa";
+import { FaListOl } from "react-icons/fa";
+import { BsImageFill } from "react-icons/bs";
 const ToolBar = ({ editor }) => {
   const addImage = () => {
     const url = window.prompt('Enter image URL:')
@@ -12,47 +17,48 @@ const ToolBar = ({ editor }) => {
 }
 
 const exportAsPDF = () => {
-  // Use jsPDF library
+  
   console.log('Export as PDF functionality')
 }
 
 const exportAsDOC = () => {
-  // Use mammoth.js or similar
+ 
   console.log('Export as DOC functionality')
 }
   return (
     <div className="menu-bar">
-      {/* Text Formatting */}
+      
       <div className="formatting-group">
-        <button onClick={() => editor.chain().focus().toggleBold().run()}>B</button>
-        <button onClick={() => editor.chain().focus().toggleItalic().run()}>I</button>
+        <button onClick={() => editor.chain().focus().toggleBold().run()}><PiTextBBold /></button>
+        <button onClick={() => editor.chain().focus().toggleItalic().run()}><VscItalic /></button>
         <button onClick={() => editor.chain().focus().toggleUnderline().run()}>U</button>
       </div>
+
+      <button onClick={() => editor.chain().focus().toggleBulletList().run()}><FaListUl /></button>
+      <button onClick={() => editor.chain().focus().toggleOrderedList().run()}><FaListOl /></button>
       
-      {/* Headings */}
-      <div className="headings-group">
-        <button onClick={() => editor.chain().focus().setParagraph().run()}>P</button>
-        <button onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}>H1</button>
-        <button onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}>H2</button>
-      </div>
-      
-      {/* Lists */}
-      <button onClick={() => editor.chain().focus().toggleBulletList().run()}>• List</button>
-      <button onClick={() => editor.chain().focus().toggleOrderedList().run()}>1. List</button>
-      
-      {/* Alignment */}
-      <button onClick={() => editor.chain().focus().setTextAlign('left').run()}>←</button>
+      {/* <button onClick={() => editor.chain().focus().setTextAlign('left').run()}>←</button>
       <button onClick={() => editor.chain().focus().setTextAlign('center').run()}>↔</button>
-      <button onClick={() => editor.chain().focus().setTextAlign('right').run()}>→</button>
+      <button onClick={() => editor.chain().focus().setTextAlign('right').run()}>→</button> */}
       
-      {/* Custom Features */}
-      <button onClick={addImage}>🖼️ Image</button>
+      
+      <button onClick={addImage}><BsImageFill /></button>
       <button onClick={() => editor.chain().focus().setHorizontalRule().run()}>― HR</button>
-      <button onClick={() => editor.chain().focus().clearNodes().run()}>Clear</button>
+        <div style={{display:'flex', gap: 15, alignItems:'center'}}>
+    <p>Size:</p>
+    <select onChange={(e) => editor.chain().focus().setFontSize(e.target.value).run()}>
+    <option value="12px">12</option>
+    <option value="14px">14</option>
+    <option value="16px">16</option>
+    <option value="18px">18</option>
+    <option value="24px">24</option>
+  </select>
+      </div>
+      {/* <button onClick={() => editor.chain().focus().clearNodes().run()}>Clear</button> */}
        
-       <button onClick={saveContent}>💾 Save</button>
+       {/* <button onClick={saveContent}>💾 Save</button>
        <button onClick={exportAsPDF}>📄 PDF</button>
-       <button onClick={exportAsDOC}>📝 DOC</button>
+       <button onClick={exportAsDOC}>📝 DOC</button> */}
     </div>
   )
 }
