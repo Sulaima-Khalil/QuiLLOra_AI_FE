@@ -6,11 +6,9 @@
     background: black;
 }
 
-a:hover{
-  color:orange;
+.card:hover a {
+  color: orange;
 }
-
-
 
 .card {
   position: relative;
@@ -27,7 +25,6 @@ a:hover{
   border-radius: inherit;
   background: linear-gradient(
     135deg,
-    /* #4C1D95, */
     #A78BFA,
     #4C1D95,
     #4C1D95,

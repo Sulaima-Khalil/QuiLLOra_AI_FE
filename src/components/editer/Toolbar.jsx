@@ -3,6 +3,7 @@ import { PiTextBBold } from "react-icons/pi";
 import { FaListUl } from "react-icons/fa";
 import { FaListOl } from "react-icons/fa";
 import { BsImageFill } from "react-icons/bs";
+import { PiDotsThreeOutlineVerticalFill } from "react-icons/pi";
 const ToolBar = ({ editor }) => {
   const addImage = () => {
     const url = window.prompt('Enter image URL:')
@@ -16,18 +17,9 @@ const ToolBar = ({ editor }) => {
   alert('Saved locally!')
 }
 
-const exportAsPDF = () => {
-  
-  console.log('Export as PDF functionality')
-}
-
-const exportAsDOC = () => {
- 
-  console.log('Export as DOC functionality')
-}
   return (
     <div className="menu-bar">
-      
+      <div className="menu-bar-box">
       <div className="formatting-group">
         <button onClick={() => editor.chain().focus().toggleBold().run()}><PiTextBBold /></button>
         <button onClick={() => editor.chain().focus().toggleItalic().run()}><VscItalic /></button>
@@ -37,14 +29,10 @@ const exportAsDOC = () => {
       <button onClick={() => editor.chain().focus().toggleBulletList().run()}><FaListUl /></button>
       <button onClick={() => editor.chain().focus().toggleOrderedList().run()}><FaListOl /></button>
       
-      {/* <button onClick={() => editor.chain().focus().setTextAlign('left').run()}>←</button>
-      <button onClick={() => editor.chain().focus().setTextAlign('center').run()}>↔</button>
-      <button onClick={() => editor.chain().focus().setTextAlign('right').run()}>→</button> */}
-      
       
       <button onClick={addImage}><BsImageFill /></button>
       <button onClick={() => editor.chain().focus().setHorizontalRule().run()}>― HR</button>
-        <div style={{display:'flex', gap: 15, alignItems:'center'}}>
+    <div style={{display:'flex', gap: 15, alignItems:'center'}}>
     <p>Size:</p>
     <select onChange={(e) => editor.chain().focus().setFontSize(e.target.value).run()}>
     <option value="12px">12</option>
@@ -52,13 +40,12 @@ const exportAsDOC = () => {
     <option value="16px">16</option>
     <option value="18px">18</option>
     <option value="24px">24</option>
-  </select>
+    </select>
       </div>
-      {/* <button onClick={() => editor.chain().focus().clearNodes().run()}>Clear</button> */}
-       
-       {/* <button onClick={saveContent}>💾 Save</button>
-       <button onClick={exportAsPDF}>📄 PDF</button>
-       <button onClick={exportAsDOC}>📝 DOC</button> */}
+      </div>
+    <div>
+      <button style={{width:120 ,height:40 , padding:4, borderRadius:6, background: "#7c5cff",}}>Create Article </button>
+     </div>
     </div>
   )
 }

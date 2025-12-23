@@ -11,7 +11,7 @@ export const Notifications = () => {
   };
 
   return (
-   <div style={{ maxWidth:400 , height:'auto', border:'2px solid #1F1F1F', padding:20 ,borderRadius:12 ,background:'black' }}>
+   <div className='card' style={{ maxWidth:400 , height:'auto', border:'2px solid #1F1F1F', padding:20 ,borderRadius:12 ,background:'black' }}>
       <Header 
        title="Notifications"
        description="Choose what you want to be notified about....."

@@ -11,6 +11,7 @@ import './Editor.css'
 
 export default function Editor() {
   const editor = useEditor({
+    editable:true,
     extensions: [
       StarterKit,
       TextStyle,
@@ -22,9 +23,11 @@ export default function Editor() {
       }),
       Placeholder.configure({
         placeholder: "Start writing here...",
+        showOnlyWhenEditable: true,
+        showOnlyCurrent: false,
       }),
     ],
-    content: "<p>Article Text</p>",
+    // content: "<p>Article Text</p>",
   });
 
   return (

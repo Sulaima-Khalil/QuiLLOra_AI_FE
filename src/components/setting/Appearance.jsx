@@ -18,7 +18,7 @@ export const Appearance = () => {
   ];
 
   return (
-    <div style={{
+    <div className='card' style={{
       maxWidth: 400,
       height: 'auto',
       border: '2px solid #1F1F1F',
