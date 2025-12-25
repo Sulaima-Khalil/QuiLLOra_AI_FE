@@ -71,12 +71,13 @@ const handleSubmit = async (e) => {
             marginBottom: '16px',
             boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
           }}>
-            <Feather style={{ width: '32px', height: '32px', color: '#ffffff' ,background:'#4f46e5'}} />
+            <Feather style={{ width: '32px', height: '32px',color: 'black' ,background:'#4f46e5'}} />
           </div>
           <h1 style={{
             fontSize: '30px',
             fontWeight: '700',
-            marginBottom: '8px'
+            marginBottom: '8px',
+            color: 'black'
           }}>Lumina</h1>
           <p style={{ color: '#4b5563' }}>Your creative writing companion</p>
         </div>
@@ -133,7 +134,8 @@ const handleSubmit = async (e) => {
                   fontSize: '14px',
                   fontWeight: '500',
                   color: 'white',
-                  marginBottom: '8px'
+                  marginBottom: '8px',
+                  color: 'black'
                 }}>
                   Full Name
                 </label>
@@ -145,7 +147,7 @@ const handleSubmit = async (e) => {
                     transform: 'translateY(-50%)',
                     width: '20px',
                     height: '20px',
-                    color: '#9ca3af'
+                    color: 'black'
                   }} />
                   <input
                     type="text"
@@ -161,7 +163,8 @@ const handleSubmit = async (e) => {
                       border: '1px solid #d1d5db',
                       borderRadius: '8px',
                       outline: 'none',
-                      transition: 'all 0.3s ease'
+                      transition: 'all 0.3s ease',
+                      color: 'black'
                     }}
                     onFocus={(e) => {
                       e.target.style.borderColor = '#4f46e5';
@@ -184,7 +187,8 @@ const handleSubmit = async (e) => {
                 fontSize: '14px',
                 fontWeight: '500',
                 color: 'white',
-                marginBottom: '8px'
+                marginBottom: '8px',
+                color: 'black'
               }}>
                 Email Address
               </label>
@@ -196,7 +200,7 @@ const handleSubmit = async (e) => {
                   transform: 'translateY(-50%)',
                   width: '20px',
                   height: '20px',
-                  color: '#9ca3af'
+                  color: 'black'
                 }} />
                 <input
                   type="email"
@@ -212,7 +216,8 @@ const handleSubmit = async (e) => {
                     border: '1px solid #d1d5db',
                     borderRadius: '8px',
                     outline: 'none',
-                    transition: 'all 0.3s ease'
+                    transition: 'all 0.3s ease',
+                    color: 'black'
                   }}
                   onFocus={(e) => {
                     e.target.style.borderColor = '#4f46e5';
@@ -234,7 +239,8 @@ const handleSubmit = async (e) => {
                 fontSize: '14px',
                 fontWeight: '500',
                 color: 'white',
-                marginBottom: '8px'
+                marginBottom: '8px',
+                color: 'black'
               }}>
                 Password
               </label>
@@ -246,7 +252,7 @@ const handleSubmit = async (e) => {
                   transform: 'translateY(-50%)',
                   width: '20px',
                   height: '20px',
-                  color: '#9ca3af'
+                  color: 'black'
                 }} />
                 <input
                   type="password"
@@ -262,7 +268,8 @@ const handleSubmit = async (e) => {
                     border: '1px solid #d1d5db',
                     borderRadius: '8px',
                     outline: 'none',
-                    transition: 'all 0.3s ease'
+                    transition: 'all 0.3s ease',
+                    color: 'black'
                   }}
                   onFocus={(e) => {
                     e.target.style.borderColor = '#4f46e5';
@@ -284,7 +291,7 @@ const handleSubmit = async (e) => {
                   display: 'block',
                   fontSize: '14px',
                   fontWeight: '500',
-                  color: 'white',
+                  color: 'black',
                   marginBottom: '8px'
                 }}>
                   Confirm Password
@@ -297,7 +304,7 @@ const handleSubmit = async (e) => {
                     transform: 'translateY(-50%)',
                     width: '20px',
                     height: '20px',
-                    color: '#9ca3af'
+                    color: 'black'
                   }} />
                   <input
                     type="password"
@@ -313,7 +320,8 @@ const handleSubmit = async (e) => {
                       border: '1px solid #d1d5db',
                       borderRadius: '8px',
                       outline: 'none',
-                      transition: 'all 0.3s ease'
+                      transition: 'all 0.3s ease',
+                      color: 'black'
                     }}
                     onFocus={(e) => {
                       e.target.style.borderColor = '#4f46e5';
@@ -346,7 +354,7 @@ const handleSubmit = async (e) => {
                       color: '#4f46e5',
                       borderColor: '#d1d5db',
                       borderRadius: '4px',
-                      marginRight: '8px'
+                      marginRight: '8px',
                     }}
                   />
                   <span style={{ color: '#4b5563' }}>Remember me</span>
@@ -427,3 +435,4 @@ const handleSubmit = async (e) => {
     </div>
   );
 }
+

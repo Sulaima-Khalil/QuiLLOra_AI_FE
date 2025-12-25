@@ -19,18 +19,18 @@ const router = createBrowserRouter([
   {
     path: '/login',
     element: (
-      //  <GuestRoute>
+       <GuestRoute>
         <AuthPage />
-      //  </GuestRoute> 
+       </GuestRoute> 
     ),
   },
   {
     path: '/',
     element: (
-      //  <ProtectedRoute>
+        <ProtectedRoute>
         <Home />
-       /* </ProtectedRoute>  */
-    ),
+       </ProtectedRoute>  
+     ),
     children: [
       { index: true, element: <Discover /> },
       { path: 'discover', element: <Discover /> },
