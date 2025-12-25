@@ -1,9 +1,12 @@
+
 import React, { useState } from "react";
-import { SaveButton } from "../shared/SettingComponent";
 import { Header } from '../shared/Header';
 import { FiKey } from "react-icons/fi";
+import { SaveButton } from "../shared/SettingComponent";
+import { theme } from '../../theme/Theme';
+
 export const Security = () => {
-   const [currentPassword, setCurrentPassword] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
@@ -11,111 +14,90 @@ export const Security = () => {
     console.log({ currentPassword, newPassword, confirmPassword });
   };
 
-
   return (
-    <div className='card' style={{ maxWidth:400 , height:'auto', border:'2px solid #1F1F1F', padding:20 ,borderRadius:12 }}>
-      <Header 
-      title="Security"
-      description="Protect your account and manage access..."
-      />
- <div style={{
-     marginTop:30,
-      maxWidth: 400,
-      padding: 24,
-      borderRadius: 12,
-      background: "#0b0b0b",
+    <div style={{
+      maxWidth: 480,
+      margin: '0 auto',
+      padding: theme.spacing.lg,
+      borderRadius: theme.radius.md,
+      border: `2px solid ${theme.colors.border}`,
+      background: theme.colors.bgSecondary,
       fontFamily: "Inter, sans-serif",
-      border: "1px solid rgba(255,255,255,0.08)",
+      color: theme.colors.textPrimary
     }}>
-      {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 30 }}>
-        <div style={{
-          width: 40,
-          height: 40,
-          borderRadius: "50%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: "rgba(255,255,255,0.08)"
-        }}>
-          <FiKey size={20} />
-        </div>
-        <div style={{display:'flex',  flexDirection:'column',gap:8}}>
-          <div style={{ fontSize: 18, fontWeight: 600 }}>Password</div>
-          <div style={{ fontSize: 12, color: "#9ca3af" }}>
-            Update your password associated with this account.
+      <Header 
+        title="Security"
+        description="Protect your account and manage access..."
+      />
+
+      <div style={{
+        marginTop: theme.spacing.md,
+        padding: theme.spacing.md,
+        borderRadius: theme.radius.md,
+        background: theme.colors.bgPrimary,
+        border: `1px solid rgba(255,255,255,0.08)`
+      }}>
+        {/* Icon + Info */}
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: theme.spacing.md }}>
+          <div style={{
+            width: 50,
+            height: 50,
+            borderRadius: "50%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "rgba(124, 92, 255, 0.1)",
+            color: theme.colors.accent
+          }}>
+            <FiKey size={24} />
+          </div>
+          <div style={{ display:'flex', flexDirection:'column', gap:4 }}>
+            <div style={{ fontSize: 18, fontWeight: 600 }}>Password</div>
+            <div style={{ fontSize: 13, color: "#9ca3af" }}>
+              Update your password associated with this account.
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Form Fields */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 30 }}>
-        <input
-          type="password"
-          placeholder="Current Password"
-          value={currentPassword}
-          onChange={(e) => setCurrentPassword(e.target.value)}
-          style={{
-            padding: "10px 12px",
-            borderRadius: 8,
-            border: "1px solid #333",
-            background: "#1a1a1a",
-            color: "#fff",
-            outline: "none"
-          }}
-        />
-        <input
-          type="password"
-          placeholder="New Password"
-          value={newPassword}
-          onChange={(e) => setNewPassword(e.target.value)}
-          style={{
-            padding: "10px 12px",
-            borderRadius: 8,
-            border: "1px solid #333",
-            background: "#1a1a1a",
-            color: "#fff",
-            outline: "none"
-          }}
-        />
-        <input
-          type="password"
-          placeholder="Confirm New Password"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          style={{
-            padding: "10px 12px",
-            borderRadius: 8,
-            border: "1px solid #333",
-            background: "#1a1a1a",
-            color: "#fff",
-            outline: "none"
-          }}
-        />
-      </div>
+        {/* Form Fields */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          {[{
+            placeholder: "Current Password",
+            value: currentPassword,
+            setter: setCurrentPassword
+          },{
+            placeholder: "New Password",
+            value: newPassword,
+            setter: setNewPassword
+          },{
+            placeholder: "Confirm New Password",
+            value: confirmPassword,
+            setter: setConfirmPassword
+          }].map((field, idx) => (
+            <input
+              key={idx}
+              type="password"
+              placeholder={field.placeholder}
+              value={field.value}
+              onChange={(e) => field.setter(e.target.value)}
+              style={{
+                padding: 12,
+                borderRadius: theme.radius.sm,
+                border: `1px solid ${theme.colors.border}`,
+                background: theme.colors.bgPrimary,
+                color: theme.colors.textPrimary,
+                outline: "none",
+                fontSize: 14
+              }}
+            />
+          ))}
+        </div>
 
-      {/* Button */}
-      <button
-        onClick={handleUpdate}
-        style={{
-          marginTop: 30,
-          padding: "10px 16px",
-          borderRadius: 8,
-          border: "none",
-          background: "#7c5cff",
-          color: "#fff",
-          fontWeight: 600,
-          cursor: "pointer",
-          boxShadow: "0 4px 12px rgba(124, 92, 255, 0.3)",
-          transition: "all 0.2s ease"
-        }}
-        onMouseOver={(e) => e.currentTarget.style.background = "#a78bfa"}
-        onMouseOut={(e) => e.currentTarget.style.background = "#7c5cff"}
-      >
-        Update Password
-      </button>
-    </div>
-    
+        {/* Update Button */}
+        <div style={{ marginTop: theme.spacing.md, display:'flex', justifyContent:'flex-end' }}>
+          <SaveButton handleSave={handleUpdate} text="Update Password" />
+        </div>
+      </div>
     </div>
   );
 };

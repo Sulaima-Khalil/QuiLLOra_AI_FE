@@ -8,7 +8,7 @@ import design1 from '../../assets/design1.png';
 import design2 from '../../assets/design2.png';
 import engineering from '../../assets/engineering.png';
 import { Card } from '../shared/Card';
-
+import { theme } from '../../theme/Theme';
 export const ArticleCards = ({ activetab }) => {
   const cardsData = [
   {
@@ -111,9 +111,18 @@ export const ArticleCards = ({ activetab }) => {
     if(activetab == 2) return card.status == "Draft";
     return true;
   })
+
+
+
   return (
-   <div>
- <Card  cardsData={filteredCards} isArticle={true}/>
-   </div>
-  )
-}
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+        gap: theme.spacing.md,
+      }}
+    >
+      <Card cardsData={filteredCards} isArticle />
+    </div>
+  );
+};

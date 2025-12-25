@@ -97,8 +97,8 @@ export const DiscoveryCards = () => {
 
 
   return (
-    <div>
+    <div className="cards-grid">
       <Card cardsData={cardsData} />
     </div>
-  )
-}
+  );
+};

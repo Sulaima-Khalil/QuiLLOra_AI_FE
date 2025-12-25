@@ -1,89 +1,113 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom';
-export const Sidebar = ({ content , ActiveIndex, activeIndicator}) => {
-     const [activeIndex, setActiveIndex] = useState(0);
-    const navigate=useNavigate();
 
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-     const handleItemClick = (index) => {
-        setActiveIndex(index);
-    };
+export const Sidebar = ({ content, ActiveIndex, activeIndicator }) => {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const navigate = useNavigate();
+
+  const handleItemClick = (index, path) => {
+    setActiveIndex(index);
+    navigate(path);
+  };
+
   return (
-     <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            // backgroundColor: '#1e293b',
-            padding: '16px 0',
-        }}>
-            {content.map((item, index) => (
-                <div
-                    key={index}
-                    onClick={() => {handleItemClick(index); navigate(item.path)}}
-                    style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        color: activeIndex === index ? '#ffffff' : '#cbd5e1',
-                        width: 250,
-                        padding: '12px 24px',
-                        margin: '4px 12px',
-                        backgroundColor: activeIndex === index ? 'black' : 'black',
-                        borderRadius: '8px',
-                        border: activeIndex === index ? '1px solid #7c5cff' : '1px solid transparent',
-                        cursor: 'pointer',
-                        transition: 'all 0.3s ease',
-                        position: 'relative',
-                        overflow: 'hidden',
-                        // '&:hover': {
-                        //     backgroundColor: activeIndex !== index ? '#2d3748' : '#334155',
-                        // }
-                    }}
-                >
-                    <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '12px',
-                        fontSize: '18px',
-                        fontWeight: activeIndex === index ? '500' : '400',
-                        // backgroundColor: activeIndex === index ? '#334155' : 'black',
-                    }}>
-                       
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        padding: "12px 0",
+        width: "100%",
+        maxWidth: 280,
+      }}
+    >
+      {content.map((item, index) => {
+        const isActive = activeIndex === index;
 
-                        <span style={{
-                            fontSize: '22px',
-                        }}>
-                            {item.icon}
-                        </span>
-                        {item.title}
-                    </div>
-                    
-                    {/* Active Indicator */}
-                    {activeIndicator &&(
-                    <div style={{
-                        width: '8px',
-                        height: '8px',
-                        borderRadius: '50%',
-                        backgroundColor: activeIndex === index ? '#7c5cff' : 'transparent',
-                        opacity: activeIndex === index ? 1 : 0,
-                        transition: 'all 0.3s ease',
-                        boxShadow: activeIndex === index ? '0 0 8px #7c5cff' : 'none'
-                    }}></div>
-                    )}
-                  
-                    {ActiveIndex && activeIndex === index && (
-                        <div style={{
-                            position: 'absolute',
-                            left: 0,
-                            top: '50%',
-                            transform: 'translateY(-50%)',
-                            width: '4px',
-                            height: '60%',
-                            backgroundColor: '#7c5cff',
-                            borderRadius: '0 4px 4px 0'
-                        }}></div>
-                    )}
-                </div>
-            ))}
-        </div>
-  )
-}
+        return (
+          <div
+            key={index}
+            onClick={() => handleItemClick(index, item.path)}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 12,
+              padding: "12px 16px",
+              margin: "4px 8px",
+              borderRadius: 10,
+              cursor: "pointer",
+              position: "relative",
+              transition: "all 0.25s ease",
+              background: isActive ? "#0e0e0e" : "transparent",
+              border: isActive
+                ? "1px solid #7c5cff"
+                : "1px solid transparent",
+              color: isActive ? "#ffffff" : "#a1a1a1",
+            }}
+            onMouseEnter={(e) => {
+              if (!isActive) e.currentTarget.style.background = "#151515";
+            }}
+            onMouseLeave={(e) => {
+              if (!isActive) e.currentTarget.style.background = "transparent";
+            }}
+          >
+            {/* Left Section */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 14,
+                fontSize: 15,
+                fontWeight: isActive ? 500 : 400,
+                whiteSpace: "nowrap",
+              }}
+            >
+              <span
+                style={{
+                  fontSize: 22,
+                  display: "flex",
+                  alignItems: "center",
+                  color: isActive ? "#7c5cff" : "#9ca3af",
+                }}
+              >
+                {item.icon}
+              </span>
+              <span>{item.title}</span>
+            </div>
+
+            {/* Right Indicator Dot */}
+            {activeIndicator && (
+              <div
+                style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: "50%",
+                  background: isActive ? "#7c5cff" : "transparent",
+                  boxShadow: isActive ? "0 0 8px #7c5cff" : "none",
+                  transition: "all 0.3s ease",
+                }}
+              />
+            )}
+
+            {/* Left Active Bar */}
+            {ActiveIndex && isActive && (
+              <div
+                style={{
+                  position: "absolute",
+                  left: 0,
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  width: 4,
+                  height: "60%",
+                  background: "#7c5cff",
+                  borderRadius: "0 4px 4px 0",
+                }}
+              />
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+};

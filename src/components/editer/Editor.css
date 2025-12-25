@@ -1,77 +1,28 @@
-
 .editor-container {
   width: 100%;
-  height: 560px;         
-  border: 1px solid #1F1F1F;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  min-height: 500px;
+  border: 1px solid #1f1f1f;
+  border-radius: 12px;
   display: flex;
   flex-direction: column;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  overflow: hidden;
 }
 
 .editor-scroll {
-  flex: 1;               
-  overflow-y: auto;       
-  padding: 12px;
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
 }
 
 .ProseMirror {
-  min-height: 100%;
-  outline: none;
-  white-space: pre-wrap;
-  word-break: break-all;
-  overflow-wrap: anywhere;
-  line-height: 1.6;
-}
-
-
-
-.menu-bar {
-  
-  padding: 12px 16px;
-  border-bottom: 1px solid #1F1F1F;
-  display: flex;
-  justify-content: space-between;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-.menu-bar-box {
-  display: flex;
-  gap: 8px;
-}
-
-.menu-bar button {
-  padding: 8px 16px;
-  background: black;
-  border: none;
-  cursor: pointer;
-  font-size: 14px;
-  transition: all 0.2s;
-  color: white;
-}
-
-.menu-bar button:hover {
-  font-size: 16;
-  font-weight: 600;
-}
-
-.menu-bar button.active {
-  background: #3b82f6;
-  color: white;
-  border-color: #2563eb;
-}
-
-/* Editor Content Area */
-.ProseMirror {
-  padding: 24px;
   min-height: 400px;
-  outline: none;
   font-family: Inter, sans-serif;
   font-size: 16px;
   line-height: 1.6;
-}
-
-.ProseMirror:focus {
   outline: none;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .ProseMirror p {
@@ -79,22 +30,87 @@
 }
 
 .ProseMirror h1 {
-  font-size: 2.5em;
+  font-size: 2rem;
   font-weight: bold;
-  margin: 1em 0 0.5em 0;
+  margin: 1em 0 0.5em;
 }
 
-.ProseMirror ul, 
+.ProseMirror ul,
 .ProseMirror ol {
-  padding-left: 2em;
+  padding-left: 1.5em;
   margin: 1em 0;
 }
 
-
 .ProseMirror p.is-editor-empty:first-child::before {
   content: attr(data-placeholder);
-  float: left;
   color: #9ca3af;
   pointer-events: none;
-  height: 0;
 }
+
+.menu-bar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  padding: 12px;
+  border-bottom: 1px solid #1f1f1f;
+  gap: 8px;
+}
+
+.menu-bar-box {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.menu-bar button {
+  padding: 6px 12px;
+  background: black;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.menu-bar button:hover {
+  background: #3b82f6;
+  font-weight: 600;
+}
+
+.font-size-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.font-size-wrapper select {
+  height: 34px;
+  padding: 0 10px;
+  background: #000;
+  color: #fff;
+  border: 1px solid #1f1f1f;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s ease;
+  appearance: none;
+}
+
+/* Hover */
+.font-size-wrapper select:hover {
+  background: #151515;
+}
+
+/* Focus */
+.font-size-wrapper select:focus {
+  border-color: #7c5cff;
+  box-shadow: 0 0 0 2px rgba(124, 92, 255, 0.25);
+}
+
+/* Dropdown options */
+.font-size-wrapper option {
+  background: #0e0e0e;
+  color: #fff;
+}
+

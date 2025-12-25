@@ -1,27 +1,32 @@
+
 import { MdLogout } from "react-icons/md";
 import { logoutUser } from "../../utils/auth";
 import { useNavigate } from "react-router-dom";
+import { theme } from "../../theme/Theme.js";
+
 export const LogoutSection = () => {
   const navigate = useNavigate();
-   const handleLogout = () => {
-         logoutUser();
-         navigate('/login')
-   }
+
+  const handleLogout = () => {
+    logoutUser();
+    navigate("/login");
+  };
+
   return (
-    <div  onClick={handleLogout}
-    style={{
-        display:'flex',
-        gap:12 ,
-        color:'white',
-        padding:40,
-        borderTop:'2px solid #1F1F1F'
-        }}>
-        <span style={{fontSize:24}}>
-            <MdLogout />
-        </span>
-        <span style={{cursor:'pointer'}}>
-            Sign out
-        </span>
+    <div
+      onClick={handleLogout}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 12,
+        padding: 30,
+        cursor: "pointer",
+        color: theme.colors.textPrimary,
+        borderTop: `1px solid ${theme.colors.border}`,
+      }}
+    >
+      <MdLogout size={22} />
+      <span>Sign out</span>
     </div>
-  )
-}
+  );
+};

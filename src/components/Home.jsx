@@ -1,14 +1,26 @@
-import { Sidebar } from "./layout/Sidebar"
-import { Outlet } from "react-router-dom"
+
+import { Sidebar } from "./layout/Sidebar.jsx";
+import { Outlet } from "react-router-dom";
+import { theme } from "../theme/Theme.js";
 
 export const Home = () => {
   return (
-    <div style={{display:'flex'}}>
-        <Sidebar activeIndicator={true} ActiveIndex={true}/>
-        <div style={{padding:20 , flex:1 , marginLeft:350 , background: 'black',height:'100%',borderRadius:6}}>
-         <Outlet />
-        </div>
-       
+    <div style={{ display: "flex" }}>
+      <Sidebar />
+
+      <main
+        style={{
+          marginLeft: theme.sidebar.width,
+          padding: 24,
+          flex: 1,
+          background: theme.colors.bgSecondary,
+          minHeight: "100vh",
+          transition: "0.3s ease",
+        }}
+        className="main-content"
+      >
+        <Outlet />
+      </main>
     </div>
-  )
-}
+  );
+};

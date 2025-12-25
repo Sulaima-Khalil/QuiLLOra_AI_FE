@@ -1,46 +1,38 @@
-import React from 'react'
+
+import { theme } from '../../theme/Theme';
 
 export const ProfileCards = () => {
-    const title = [
-        {
-            name:"Articles",
-            count: 45,
-        },
-        {
-            name:"Followers",
-            count: 125
-        },
-        {
-            name:"Following",
-            count: 60
-        },
-        {
-            name:"Total Views",
-            count: 35
-        }
-         ]
-    
-  return (
-    <div style={{ display:'flex', gap:45 , alignItems:'center' ,justifyContent:'center'}}>
-  {title.map((items , index) => (
-    <div key={index}  className='card'
-    style={{ 
-        width:240 , 
-        height:100 ,
-        borderRadius:12 , 
-        border:'2px solid #1F1F1F',
-        display:'flex' ,
-        flexDirection:'column', 
-        alignItems:'center' ,
-        justifyContent:'center',
-        gap:15
-        }}>
-       <h2>{items.count}</h2>
-       <p>{items.name}</p>
-    </div>
-  ))
+  const stats = [
+    { name:"Articles", count: 45 },
+    { name:"Followers", count: 125 },
+    { name:"Following", count: 60 },
+    { name:"Total Views", count: 35 }
+  ];
 
-  }
+  return (
+    <div style={{
+      display:'flex',
+      flexWrap: 'wrap',
+      gap: theme.spacing.lg,
+      justifyContent:'center',
+    }}>
+      {stats.map((item, index) => (
+        <div key={index} style={{
+          width: 200,
+          height: 100,
+          borderRadius: theme.radius.md,
+          border: `2px solid ${theme.colors.border}`,
+          display:'flex',
+          flexDirection:'column',
+          alignItems:'center',
+          justifyContent:'center',
+          gap: theme.spacing.sm,
+          // background: theme.colors.bgSecondary,
+        }}>
+          <h2 style={{ margin: 0 }}>{item.count}</h2>
+          <p style={{ margin: 0, color: theme.colors.textSecondary }}>{item.name}</p>
+        </div>
+      ))}
     </div>
   )
 }

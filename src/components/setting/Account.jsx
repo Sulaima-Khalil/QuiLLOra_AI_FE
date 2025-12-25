@@ -1,113 +1,106 @@
+
 import { Header } from '../shared/Header';
+import { theme } from '../../theme/Theme';
 
 export const Account = () => {
-    const getInitials=(name)=>{
-  if(!name) return " ";
-  const words=name.split();
-  if(words.length === 1) return words[0][0].toUpperCase();
-  return words[0][0].toUpperCase() + words[1][0].toUpperCase();
-}
+  const getInitials = (name) => {
+    if (!name) return " ";
+    const words = name.split(" ");
+    return words.length === 1 ? words[0][0].toUpperCase() : words[0][0].toUpperCase() + words[1][0].toUpperCase();
+  };
+
   return (
-    <div className='card' style={{ maxWidth:400 , height:'auto', border:'2px solid #1F1F1F', padding:20 ,borderRadius:12 }}>
-      <Header 
-      title="Profile Information"
-      description="Update your photo and personal details..."
-      />
-        <div style={{display:'flex',gap:16 , paddingTop:30}}>
-             <div 
-                style={{
-                    width: 70,
-                    height: 70,
-                    borderRadius: '50%',
-                    backgroundColor: "#7c5cff", 
-                    color: "white",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                   
-                    fontWeight: "bold",
-                    fontSize: 24,
-                    marginRight: 8,
-                }}>
-                    {getInitials("Sulaima khalil")}
-            </div>
-            <div 
-            style={{display:'flex',flexDirection:'column',gap:16 ,alignItems:'center'}}
-            >
-            <div style={{display:'flex',gap:16 ,alignItems:'center'}}>
-                <button style={{background:'black', width:120,borderRadius:12 ,height:37}}>Change Photo</button>
-                <button style={{background:'none',border:'none' ,color:'orange'}}>Remove</button>
-            </div>
-            <span style={{fontSize:12}}>JPG, GIF or PNG. Max sixe of 800K</span>
-            </div>
-            </div>
-      <div style={{ display: 'flex', flexWrap:'wrap',gap: 30,paddingTop:40  }}>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, width: 175 }}>
-        <label>First Name</label>
-        <input
-          aria-label="first-name"
-          value="Sulaima"
-          style={{
-            background: 'none',
-            border: '1px solid gray',
-            borderRadius: 6,
-            width: '100%',
-            padding: 8,
-            height:30
-          }}
-        />
-        </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, width: 175 }}>
-        <label>Last Name</label>
-        <input
-          aria-label="last-name"
-          value="Khalil"
-          style={{
-            background: 'none',
-            border: '1px solid gray',
-            borderRadius: 6,
-            width: '100%',
-            padding: 8,
-            height:30
-          }}
-        />
-        </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, width: '95%' }}>
-        <label>Email</label>
-        <input
-          aria-label="email"
-          value="sulaima@example.com"
-          style={{
-            background: 'none',
-            border: '1px solid gray',
-            borderRadius: 6,
-            width: '100%',
-            padding: 8,
-            height:30
-          }}
-        />
+    <div style={{
+      maxWidth: 450,
+      width: '100%',
+      background: theme.colors.cardBg,
+      border: `2px solid ${theme.colors.border}`,
+      padding: theme.spacing.lg,
+      borderRadius: theme.radius.md,
+      margin: '0 auto'
+    }}>
+      <Header title="Profile Information" description="Update your photo and personal details..." />
+
+      <div style={{ display: 'flex', gap: theme.spacing.md, paddingTop: theme.spacing.lg }}>
+        <div style={{
+          width: 80,
+          height: 80,
+          borderRadius: '50%',
+          backgroundColor: theme.colors.accent,
+          color: theme.colors.textPrimary,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontWeight: 'bold',
+          fontSize: 24,
+        }}>{getInitials("Sulaima Khalil")}</div>
+
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: theme.spacing.sm }}>
+          <div style={{ display: 'flex', gap: theme.spacing.sm }}>
+            <button style={{
+              background: theme.colors.bgSecondary,
+              borderRadius: theme.radius.sm,
+              padding: '8px 16px',
+              border: 'none',
+              cursor: 'pointer',
+            }}>Change Photo</button>
+            <button style={{
+              background: 'none',
+              border: 'none',
+              color: theme.colors.accent,
+              cursor: 'pointer'
+            }}>Remove</button>
+          </div>
+          <span style={{ fontSize: theme.fontSize.sm }}>JPG, GIF, or PNG. Max size 800K</span>
         </div>
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, width: '95%', paddingTop: 16 }}>
-        <label htmlFor="bio">Bio</label>
-        <textarea
-          id="bio"
-          aria-label="bio"
-          value="Web developer and passionate hardworker to design websites and web applications"
-          style={{
-            background: 'none',
-            border: '1px solid gray',
-            borderRadius: 4,
-            width: '100%',
-            padding: 8,
-            minHeight: 50,  
-            maxHeight:70,
-            resize: 'vertical' 
-          }}
-        />
+
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: theme.spacing.lg, marginTop: theme.spacing.lg }}>
+        <div style={{ flex: 1, minWidth: 150, display: 'flex', flexDirection: 'column', gap: theme.spacing.xs }}>
+          <label>First Name</label>
+          <input value="Sulaima" style={{
+            padding: theme.spacing.sm,
+            borderRadius: theme.radius.sm,
+            border: `1px solid ${theme.colors.inputBorder}`,
+            background: theme.colors.inputBg,
+            color: theme.colors.textPrimary
+          }} />
+        </div>
+        <div style={{ flex: 1, minWidth: 150, display: 'flex', flexDirection: 'column', gap: theme.spacing.xs }}>
+          <label>Last Name</label>
+          <input value="Khalil" style={{
+            padding: theme.spacing.sm,
+            borderRadius: theme.radius.sm,
+            border: `1px solid ${theme.colors.inputBorder}`,
+            background: theme.colors.inputBg,
+            color: theme.colors.textPrimary
+          }} />
+        </div>
+        <div style={{ flex: 1, minWidth: 300, display: 'flex', flexDirection: 'column', gap: theme.spacing.xs }}>
+          <label>Email</label>
+          <input value="sulaima@example.com" style={{
+            padding: theme.spacing.sm,
+            borderRadius: theme.radius.sm,
+            border: `1px solid ${theme.colors.inputBorder}`,
+            background: theme.colors.inputBg,
+            color: theme.colors.textPrimary
+          }} />
+        </div>
       </div>
-      
-      
-              </div>
-  )
-}
+
+      <div style={{ marginTop: theme.spacing.lg, display: 'flex', flexDirection: 'column', gap: theme.spacing.sm }}>
+        <label>Bio</label>
+        <textarea value="Web developer and passionate hardworker to design websites and web applications"
+          style={{
+            padding: theme.spacing.sm,
+            borderRadius: theme.radius.sm,
+            border: `1px solid ${theme.colors.inputBorder}`,
+            background: theme.colors.inputBg,
+            color: theme.colors.textPrimary,
+            minHeight: 60,
+            resize: 'vertical'
+          }} />
+      </div>
+    </div>
+  );
+};

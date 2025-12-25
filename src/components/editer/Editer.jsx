@@ -1,33 +1,31 @@
-import { useEditor, EditorContent } from '@tiptap/react'
-import StarterKit from '@tiptap/starter-kit'
-import { Placeholder } from '@tiptap/extension-placeholder'
-import { TextStyle } from '@tiptap/extension-text-style'
-import { Underline } from '@tiptap/extension-underline'
-import { Image } from '@tiptap/extension-image'
-import { TextAlign } from '@tiptap/extension-text-align'
-import { FontSize } from './FontSize'
-import ToolBar from './Toolbar'
-import './Editor.css'
+
+
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import { Placeholder } from '@tiptap/extension-placeholder';
+import { TextStyle } from '@tiptap/extension-text-style';
+import { Underline } from '@tiptap/extension-underline';
+import { Image } from '@tiptap/extension-image';
+import { TextAlign } from '@tiptap/extension-text-align';
+import { FontSize } from './FontSize';
+import ToolBar from './Toolbar';
+import './Editor.css';
 
 export default function Editor() {
   const editor = useEditor({
-    editable:true,
+    editable: true,
     extensions: [
       StarterKit,
       TextStyle,
       Underline,
       Image,
       FontSize,
-      TextAlign.configure({
-        types: ["heading", "paragraph"],
-      }),
+      TextAlign.configure({ types: ["heading", "paragraph"] }),
       Placeholder.configure({
         placeholder: "Start writing here...",
         showOnlyWhenEditable: true,
-        showOnlyCurrent: false,
       }),
     ],
-    // content: "<p>Article Text</p>",
   });
 
   return (
@@ -39,4 +37,3 @@ export default function Editor() {
     </div>
   );
 }
-

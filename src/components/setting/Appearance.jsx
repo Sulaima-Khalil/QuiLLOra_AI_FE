@@ -1,14 +1,17 @@
-import React, { useState } from "react";
+
+import  { useState } from "react";
 import { Header } from '../shared/Header';
 import { CiLight, CiDark } from "react-icons/ci";
 import { RiComputerLine } from "react-icons/ri";
-import { SaveButton } from '../shared/SettingComponent'
+import { SaveButton } from '../shared/SettingComponent';
+import { theme } from '../../theme/Theme';
+
 export const Appearance = () => {
-  const [darkMode, setDarkMode] = useState(false);
+  const [themeMode, setThemeMode] = useState("System");
   const [fontSize, setFontSize] = useState("medium");
 
   const handleSave = () => {
-    console.log({ darkMode, fontSize });
+    console.log({ themeMode, fontSize });
   };
 
   const modes = [
@@ -18,59 +21,64 @@ export const Appearance = () => {
   ];
 
   return (
-    <div className='card' style={{
-      maxWidth: 400,
-      height: 'auto',
-      border: '2px solid #1F1F1F',
-      padding: 20,
-      borderRadius: 12,
-      fontFamily: "Inter, sans-serif"
+    <div style={{
+      maxWidth: 480,
+      margin: "0 auto",
+      padding: theme.spacing.lg,
+      borderRadius: theme.radius.md,
+      border: `2px solid ${theme.colors.border}`,
+      background: theme.colors.bgSecondary,
+      fontFamily: "Inter, sans-serif",
+      color: theme.colors.textPrimary
     }}>
       <Header
         title="Appearance"
-        description="Customize how lumina looks on your device..."
+        description="Customize how Lumina looks on your device..."
       />
 
-      <div style={{ paddingTop: 20 }}>
-        <h4 style={{ marginBottom: 16 }}>Theme</h4>
-
-        {modes.map((mode, index) => (
-          <div key={index} style={{ marginBottom: 16 }}>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 12,
-              padding: 10,
-              borderRadius: 8,
-              cursor: 'pointer'
-            }}>
-              <span style={{ fontSize: 24 }}>{mode.icon}</span>
-              <p style={{ margin: 0, fontWeight: 500 }}>{mode.name}</p>
-            </div>
-
-            <input
-              type="range"
-              min="0"
-              max="100"
-              defaultValue="50"
+      {/* Theme Selection */}
+      <div style={{ marginTop: theme.spacing.md }}>
+        <h4 style={{ marginBottom: theme.spacing.sm }}>Theme</h4>
+        <div style={{ display: 'flex', gap: theme.spacing.md }}>
+          {modes.map((mode, idx) => (
+            <div 
+              key={idx}
+              onClick={() => setThemeMode(mode.name)}
               style={{
-                width: '100%',
-                accentColor: '#7c5cff',
-                height: 6,
-                borderRadius: 4,
-                marginTop: 8
+                flex: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: theme.spacing.sm,
+                borderRadius: theme.radius.sm,
+                border: themeMode === mode.name ? `2px solid ${theme.colors.accent}` : `1px solid ${theme.colors.border}`,
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                background: themeMode === mode.name ? theme.colors.hover : theme.colors.bgSecondary
               }}
-            />
-          </div>
-        ))}
+            >
+              <span style={{ fontSize: 28, marginBottom: 6 }}>{mode.icon}</span>
+              <p style={{ margin: 0, fontWeight: 600 }}>{mode.name}</p>
+            </div>
+          ))}
+        </div>
       </div>
 
-      <div style={{ marginTop: 40, marginBottom: 30 }}>
-        <label style={{ marginRight: 8 }}>Font Size:</label>
+      {/* Font Size */}
+      <div style={{ marginTop: theme.spacing.lg }}>
+        <label style={{ fontWeight: 500, marginBottom: 6, display: "block" }}>Font Size</label>
         <select
           value={fontSize}
           onChange={(e) => setFontSize(e.target.value)}
-          style={{ padding: 6, borderRadius: 4 }}
+          style={{
+            width: '100%',
+            padding: 10,
+            borderRadius: theme.radius.sm,
+            border: `1px solid ${theme.colors.border}`,
+            background: theme.colors.bgPrimary,
+            color: theme.colors.textPrimary
+          }}
         >
           <option value="small">Small</option>
           <option value="medium">Medium</option>
@@ -78,7 +86,10 @@ export const Appearance = () => {
         </select>
       </div>
 
-     <SaveButton handleSave={handleSave}/>
+      {/* Save Button */}
+      <div style={{ marginTop: theme.spacing.lg, display: 'flex', justifyContent: 'flex-end' }}>
+        <SaveButton handleSave={handleSave} />
+      </div>
     </div>
   );
 };
