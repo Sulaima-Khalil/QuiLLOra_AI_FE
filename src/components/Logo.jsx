@@ -9,12 +9,13 @@ const SIZES = {
 };
 
 // Reusable brand lockup: the QuiLLora quill mark paired with an editorial
-// serif wordmark and an "AI" chip.
-export default function Logo({ size = "md", showWord = true, color = "#fff" }) {
+// serif wordmark and an "AI" chip. `mark` picks the mark's colourway; `color`
+// is the wordmark's text colour.
+export default function Logo({ size = "md", showWord = true, color = "#fff", mark = "teal" }) {
   const s = SIZES[size] || SIZES.md;
   return (
     <Stack direction="row" spacing={1.1} sx={{ alignItems: "center" }}>
-      <QuilloraMark size={s.mark} title="QuiLLora AI" style={{ flexShrink: 0 }} />
+      <QuilloraMark size={s.mark} color={mark} title="QuiLLora AI" style={{ flexShrink: 0 }} />
 
       {showWord && (
         <Stack direction="row" spacing={0.6} sx={{ alignItems: "center" }}>
