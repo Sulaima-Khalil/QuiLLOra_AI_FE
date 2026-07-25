@@ -65,7 +65,7 @@ const sessions = [
   },
   {
     device: "iPhone 15 Pro - San Francisco, CA",
-    meta: "2 hours ago • InkFlow App",
+    meta: "2 hours ago • QuiLLora App",
     current: false,
   },
 ];
@@ -219,7 +219,7 @@ export const Setting = () => {
       // The backend requires the password whenever the account has one, and
       // removes every article, collection and team record it owns.
       await deleteAccount(deletePassword);
-      localStorage.removeItem("inkflow_notifications_read");
+      localStorage.removeItem("quillora_notifications_read");
       await logoutUser();
       navigate("/");
     } catch (error) {
@@ -632,7 +632,7 @@ export const Setting = () => {
             mt: 1
           }}>
           <Typography variant="body2" sx={{ flex: 1, color: "text.secondary" }}>
-            Permanently delete your InkFlow AI account and all associated editorial data.
+            Permanently delete your QuiLLora AI account and all associated editorial data.
             This action cannot be undone.
           </Typography>
           <Button
@@ -656,7 +656,7 @@ export const Setting = () => {
           mb: 4
         }}>
         <Typography variant="caption" sx={{ flex: 1, color: "text.secondary" }}>
-          © 2024 InkFlow AI. Secure Editorial Environment.
+          © 2024 QuiLLora AI. Secure Editorial Environment.
         </Typography>
         <Stack direction="row" spacing={2.5}>
           {["Privacy Policy", "Terms of Service", "Security Guidelines"].map((label) => (

@@ -103,7 +103,7 @@ export default function Hero() {
             </Typography>
 
             <Typography variant="body1" sx={{ mt: 3, maxWidth: 420, fontSize: "1.125rem", color: "text.secondary" }}>
-              InkFlow AI is the all-in-one platform to write, optimize, publish,
+              QuiLLora AI is the all-in-one platform to write, optimize, publish,
               and grow your ideas with the power of AI.
             </Typography>
 

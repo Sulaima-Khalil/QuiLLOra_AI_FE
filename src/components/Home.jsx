@@ -17,7 +17,6 @@ import {
   LinearProgress,
 } from "@mui/material";
 import {
-  Feather,
   LayoutDashboard,
   PenLine,
   Sparkles,
@@ -40,6 +39,7 @@ import { getProfile, getInitials, subscribeProfile } from "../utils/profileStore
 import { readJSON, writeJSON } from "../utils/storage";
 import { useColorMode } from "../theme/useColorMode";
 import { brandColors } from "../theme/muiTheme";
+import QuilloraMark from "./brand/QuilloraMark";
 
 const NOTIFICATIONS = [
   { id: "n1", title: "Ava Collins commented on your draft", time: "2m ago" },
@@ -47,7 +47,7 @@ const NOTIFICATIONS = [
   { id: "n3", title: "Weekly analytics report is ready", time: "3h ago" },
   { id: "n4", title: "Sarah Chen invited you to collaborate", time: "Yesterday" },
 ];
-const READ_KEY = "inkflow_notifications_read";
+const READ_KEY = "quillora_notifications_read";
 
 const SIDEBAR_WIDTH = 240;
 
@@ -104,22 +104,9 @@ const SidebarContent = ({ onNavigate, onLogout, profile }) => (
         pb: 2.5,
         textDecoration: "none"
       }}>
-      <Box
-        sx={{
-          width: 34,
-          height: 34,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          borderRadius: 2,
-          background: `linear-gradient(135deg, ${brandColors.secondary} 0%, ${brandColors.primary} 100%)`,
-          color: "#fff",
-        }}
-      >
-        <Feather size={18} />
-      </Box>
+      <QuilloraMark size={36} style={{ flexShrink: 0 }} />
       <Typography variant="h6" sx={{ color: "#fff" }}>
-        InkFlow <Box component="span" sx={{ color: brandColors.mint }}>AI</Box>
+        QuiLLora <Box component="span" sx={{ color: brandColors.mint }}>AI</Box>
       </Typography>
     </Stack>
 

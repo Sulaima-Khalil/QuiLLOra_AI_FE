@@ -7,7 +7,7 @@ import api from "./apiClient";
  * and the team panel in Setting.jsx keep working — both already subscribe.
  */
 
-const CHANGE_EVENT = "inkflow-team-change";
+const CHANGE_EVENT = "quillora-team-change";
 
 const ROLES = ["Admin", "Editor", "Viewer"];
 

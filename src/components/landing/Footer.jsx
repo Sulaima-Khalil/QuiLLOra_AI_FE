@@ -69,7 +69,7 @@ export default function Footer() {
 
         <Box sx={{ mt: 6, borderTop: `1px solid ${brandColors.darkBorder}`, pt: 3, textAlign: "center" }}>
           <Typography variant="caption" sx={{ color: "rgba(255,255,255,0.5)" }}>
-            © {new Date().getFullYear()} InkFlow AI. All rights reserved.
+            © {new Date().getFullYear()} QuiLLora AI. All rights reserved.
           </Typography>
         </Box>
       </Container>

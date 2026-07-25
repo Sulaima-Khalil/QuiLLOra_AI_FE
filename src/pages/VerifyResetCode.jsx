@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
-import { Feather, ArrowLeft, ArrowRight, Mail, Timer } from "lucide-react";
+import { Link, Navigate, useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { ArrowLeft, ArrowRight, Mail, Timer } from "lucide-react";
 import { requestPasswordReset, verifyResetCode } from "../utils/auth";
+import { getResetEmail, rememberResetEmail } from "../utils/resetFlow";
 import AuthShowcase from "../components/auth/AuthShowcase";
+import QuilloraMark from "../components/brand/QuilloraMark";
 import RecoverySteps from "../components/auth/RecoverySteps";
 import "../components/auth/auth.css";
 
@@ -12,13 +14,15 @@ const RESEND_SECONDS = 45;
 /**
  * Step 2 of 3 — the user types the 6-digit code from the email.
  *
- * The address arrives as router state from /forgot-password; landing here
- * directly has nothing to verify, so it bounces back to step 1.
+ * The address comes from router state, a `?email=` deep link, or the session
+ * copy that survives a refresh. With none of those there is nothing to verify,
+ * so the screen bounces back to step 1.
  */
 export default function VerifyResetCode() {
   const location = useLocation();
   const navigate = useNavigate();
-  const email = location.state?.email || "";
+  const [searchParams] = useSearchParams();
+  const email = location.state?.email || searchParams.get("email") || getResetEmail();
 
   const [digits, setDigits] = useState(Array(LENGTH).fill(""));
   const [error, setError] = useState("");
@@ -37,6 +41,11 @@ export default function VerifyResetCode() {
     const timer = setInterval(() => setCooldown((c) => c - 1), 1000);
     return () => clearInterval(timer);
   }, [cooldown]);
+
+  // Keeps a deep-linked address available to step 3 and to a later refresh.
+  useEffect(() => {
+    if (email) rememberResetEmail(email);
+  }, [email]);
 
   const focusAt = (index) => {
     const next = inputs.current[Math.max(0, Math.min(LENGTH - 1, index))];
@@ -155,8 +164,8 @@ export default function VerifyResetCode() {
               <ArrowLeft size={17} />
             </Link>
             <Link to="/" className="card-brand">
-              <span className="mark"><Feather size={18} /></span>
-              <span className="word">InkFlow <b>AI</b></span>
+              <QuilloraMark size={34} />
+              <span className="word">QuiLLora <b>AI</b></span>
             </Link>
           </div>
 
@@ -225,7 +234,7 @@ export default function VerifyResetCode() {
         </div>
 
         <p className="auth-legal">
-          © 2024 InkFlow AI · <a href="#">Privacy</a> · <a href="#">Terms</a>
+          © 2024 QuiLLora AI · <a href="#">Privacy</a> · <a href="#">Terms</a>
         </p>
       </main>
     </div>

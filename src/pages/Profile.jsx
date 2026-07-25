@@ -32,10 +32,10 @@ import {
   FileEdit,
   Send,
   Award,
-  Feather,
   TrendingUp,
 } from "lucide-react";
 import { brandColors } from "../theme/muiTheme";
+import QuilloraMark from "../components/brand/QuilloraMark";
 import { getProfile, saveProfile, getInitials } from "../utils/profileStore";
 import { getArticles } from "../utils/articlesStore";
 import { articleMetrics, formatCount } from "../utils/metrics";
@@ -136,7 +136,7 @@ export const Profile = () => {
       >
         {/* faint watermark */}
         <Box sx={{ position: "absolute", right: -20, top: -20, color: "rgba(45,212,191,0.05)" }}>
-          <Feather size={220} />
+          <QuilloraMark size={220} tone="mono" />
         </Box>
 
         <Stack direction="row" spacing={1} sx={{ position: "absolute", top: 20, right: 20 }}>
@@ -172,7 +172,7 @@ export const Profile = () => {
               Deep-sea ink enthusiast & neural AI specialist.
             </Typography>
             <Typography sx={{ fontSize: 13.5, color: "rgba(255,255,255,0.72)", mt: 1.5, maxWidth: 620, lineHeight: 1.65 }}>
-              Specializing in the intersection of high-frequency AI generation and investigative journalism. With over a decade of editorial experience, I leverage InkFlow's neural engines to architect narratives that resonate with human intuition while maintaining mathematical precision.
+              Specializing in the intersection of high-frequency AI generation and investigative journalism. With over a decade of editorial experience, I leverage QuiLLora's neural engines to architect narratives that resonate with human intuition while maintaining mathematical precision.
             </Typography>
             <Button
               variant="outlined"
@@ -373,7 +373,7 @@ export const Profile = () => {
       </Box>
 
       <Typography sx={{ textAlign: "center", fontSize: 12, color: "text.secondary", pt: 1 }}>
-        © 2026 InkFlow AI Editorial Ecosystem. All Rights Reserved.
+        © 2026 QuiLLora AI Editorial Ecosystem. All Rights Reserved.
       </Typography>
 
       {/* Edit dialog */}

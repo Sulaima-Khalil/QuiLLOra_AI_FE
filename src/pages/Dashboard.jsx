@@ -150,7 +150,7 @@ export default function Dashboard() {
               Let&rsquo;s create something worth reading today.
             </Typography>
             <Typography variant="body2" sx={{ mt: 1.5, maxWidth: 420, color: "rgba(255,255,255,0.75)" }}>
-              &ldquo;Words have power. Your words can inspire, teach, and change lives.&rdquo; — InkFlow AI
+              &ldquo;Words have power. Your words can inspire, teach, and change lives.&rdquo; — QuiLLora AI
             </Typography>
             <Stack direction="row" spacing={1.5} sx={{ mt: 2.5, flexWrap: "wrap", gap: 1 }}>
               <Button

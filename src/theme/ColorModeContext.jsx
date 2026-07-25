@@ -4,7 +4,7 @@ import CssBaseline from "@mui/material/CssBaseline";
 import { createAppTheme } from "./muiTheme";
 import { ColorModeContext } from "./useColorMode";
 
-const STORAGE_KEY = "inkflow_theme_mode";
+const STORAGE_KEY = "quillora_theme_mode";
 
 export const ColorModeProvider = ({ children }) => {
   const [mode, setMode] = useState(() => localStorage.getItem(STORAGE_KEY) || "dark");

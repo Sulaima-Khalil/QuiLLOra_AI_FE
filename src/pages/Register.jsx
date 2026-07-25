@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Feather, Eye, EyeOff, ArrowRight, User, AtSign, Mail, Lock, Globe, Github, Check, ChevronDown } from "lucide-react";
+import { Eye, EyeOff, ArrowRight, User, AtSign, Mail, Lock, Globe, Github, Check, ChevronDown } from "lucide-react";
 import { registerUser , getAuthProviders, startOAuth } from "../utils/auth";
 import AuthShowcase, { GoogleIcon } from "../components/auth/AuthShowcase";
+import QuilloraMark from "../components/brand/QuilloraMark";
 import "../components/auth/auth.css";
 
 const countries = ["Pakistan", "United States", "United Kingdom", "Canada", "Germany", "India", "Australia", "Other"];
@@ -62,8 +63,8 @@ export default function Register() {
       <main className="auth-panel">
         <div className="auth-card is-wide">
           <Link to="/" className="card-brand">
-            <span className="mark"><Feather size={18} /></span>
-            <span className="word">InkFlow <b>AI</b></span>
+            <QuilloraMark size={34} />
+            <span className="word">QuiLLora <b>AI</b></span>
           </Link>
 
           <h1 className="card-title">Create your account</h1>
@@ -224,7 +225,7 @@ export default function Register() {
         </div>
 
         <p className="auth-legal">
-          © 2024 InkFlow AI · Secure Editorial Environment
+          © 2024 QuiLLora AI · Secure Editorial Environment
         </p>
       </main>
     </div>

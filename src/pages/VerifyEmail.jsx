@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { Box, Typography, Button, Stack, Divider, Snackbar, Alert } from "@mui/material";
-import { Feather, Mail, ShieldCheck, CheckCircle2 } from "lucide-react";
+import { Mail, ShieldCheck, CheckCircle2 } from "lucide-react";
 import { brandColors } from "../theme/muiTheme";
+import QuilloraMark from "../components/brand/QuilloraMark";
 import { verifyEmail, resendVerification } from "../utils/auth";
 
 /** Badge label for each stage of the verification flow. */
@@ -42,7 +43,7 @@ export default function VerifyEmail() {
       .then(() => {
         if (cancelled) return;
         setStatus("verified");
-        setToast({ severity: "success", message: "Email verified. Welcome to InkFlow AI." });
+        setToast({ severity: "success", message: "Email verified. Welcome to QuiLLora AI." });
       })
       .catch((err) => {
         if (cancelled) return;
@@ -91,22 +92,9 @@ export default function VerifyEmail() {
           py: 2
         }}>
         <Box component={Link} to="/" sx={{ display: "flex", alignItems: "center", gap: 1, textDecoration: "none" }}>
-          <Box
-            sx={{
-              width: 32,
-              height: 32,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              borderRadius: 2,
-              bgcolor: "primary.main",
-              color: "#fff",
-            }}
-          >
-            <Feather size={18} />
-          </Box>
+          <QuilloraMark size={34} style={{ flexShrink: 0 }} />
           <Typography variant="h6" sx={{ color: "text.primary" }}>
-            InkFlow <Box component="span" sx={{ color: "primary.main" }}>AI</Box>
+            QuiLLora <Box component="span" sx={{ color: "primary.main" }}>AI</Box>
           </Typography>
         </Box>
         <Typography component="a" href="#" variant="body2" sx={{ color: "text.secondary", "&:hover": { color: "primary.main" } }}>
@@ -225,7 +213,7 @@ export default function VerifyEmail() {
             }}>
             <ShieldCheck size={14} />
             <Typography variant="caption" sx={{ fontStyle: "italic" }}>
-              Secure Editorial Environment Protected by InkFlow Shield
+              Secure Editorial Environment Protected by QuiLLora Shield
             </Typography>
           </Stack>
         </Box>
@@ -248,7 +236,7 @@ export default function VerifyEmail() {
           py: 2
         }}>
         <Typography variant="caption" sx={{ color: "text.secondary" }}>
-          © 2024 InkFlow AI. Secure Editorial Environment.
+          © 2024 QuiLLora AI. Secure Editorial Environment.
         </Typography>
         <Stack direction="row" spacing={2.5}>
           {["Privacy Policy", "Terms of Service", "Security Guidelines"].map((label) => (

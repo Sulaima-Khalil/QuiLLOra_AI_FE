@@ -249,7 +249,7 @@ export const Write = () => {
           </IconButton>
         </Tooltip>
         <Typography component={Link} to="/dashboard" variant="h6" sx={{ color: "#fff", textDecoration: "none", whiteSpace: "nowrap" }}>
-          InkFlow <Box component="span" sx={{ color: brandColors.mint }}>AI</Box>
+          QuiLLora <Box component="span" sx={{ color: brandColors.mint }}>AI</Box>
         </Typography>
         <Box sx={{ width: "1px", height: 20, bgcolor: brandColors.darkBorder, display: { xs: "none", sm: "block" } }} />
         <Typography
@@ -477,7 +477,7 @@ export const Write = () => {
           <Stack spacing={1} sx={{ position: "fixed", right: { xs: 12, sm: 24 }, bottom: 24, zIndex: 20 }}>
             <Tooltip title="Writing help" placement="left">
               <IconButton
-                onClick={() => setToast({ severity: "info", message: "Support request sent — our editorial team will reach out at support@inkflow.ai." })}
+                onClick={() => setToast({ severity: "info", message: "Support request sent — our editorial team will reach out at support@quillora.ai." })}
                 sx={{ bgcolor: brandColors.dark, color: "#fff", borderRadius: 2, boxShadow: 3, border: `1px solid ${brandColors.darkBorder}`, "&:hover": { bgcolor: brandColors.primaryDark } }}
               >
                 <HelpCircle size={17} />

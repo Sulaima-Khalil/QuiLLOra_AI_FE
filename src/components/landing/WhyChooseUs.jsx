@@ -45,7 +45,7 @@ export default function WhyChooseUs() {
         <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", lg: "1fr 1fr" }, gap: 6, alignItems: "center" }}>
           <Box>
             <Typography variant="caption" sx={{ fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase", color: "primary.main" }}>
-              Why Choose InkFlow AI?
+              Why Choose QuiLLora AI?
             </Typography>
             <Typography variant="h3" sx={{ mt: 0.5, fontSize: { xs: "1.875rem", sm: "2.25rem" } }}>
               Everything You Need To Create, Publish &amp; Grow
@@ -68,7 +68,7 @@ export default function WhyChooseUs() {
                 <TableRow sx={{ bgcolor: brandColors.bgSecondary }}>
                   <TableCell sx={{ fontFamily: "var(--font-button)", fontWeight: 700 }}>Features</TableCell>
                   <TableCell align="center" sx={{ fontFamily: "var(--font-button)", fontWeight: 700, color: "primary.main" }}>
-                    InkFlow AI
+                    QuiLLora AI
                   </TableCell>
                   <TableCell align="center" sx={{ fontFamily: "var(--font-button)", fontWeight: 700, color: "text.secondary" }}>
                     Other Platforms

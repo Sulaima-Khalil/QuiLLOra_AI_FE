@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
-import { Feather, ShieldCheck, Lock, Sparkles, Send, Star, KeyRound, MailCheck, RotateCcw } from "lucide-react";
+import { ShieldCheck, Lock, Sparkles, Send, Star, KeyRound, MailCheck, RotateCcw } from "lucide-react";
+import QuilloraMark from "../brand/QuilloraMark";
 import "./auth.css";
 
 export const GoogleIcon = () => (
@@ -13,8 +14,8 @@ export const GoogleIcon = () => (
 
 const Brand = () => (
   <Link to="/" className="stage-brand">
-    <span className="mark"><Feather size={20} /></span>
-    <span className="word">InkFlow <b>AI</b></span>
+    <QuilloraMark size={42} />
+    <span className="word">QuiLLora <b>AI</b></span>
   </Link>
 );
 
@@ -94,7 +95,7 @@ const SignupStage = () => (
     <Brand />
 
     <div className="stage-main">
-      <span className="stage-eyebrow"><span className="pulse" />Join InkFlow AI</span>
+      <span className="stage-eyebrow"><span className="pulse" />Join QuiLLora AI</span>
       <h1 className="stage-headline">
         Start writing with an <em>intelligent</em> editor.
       </h1>
@@ -189,7 +190,7 @@ const RecoveryStage = ({ step = 1 }) => {
             &ldquo;Recovery took under a minute and nothing in my workspace
             moved.&rdquo;
           </blockquote>
-          <cite>— Managing Editor, InkFlow AI</cite>
+          <cite>— Managing Editor, QuiLLora AI</cite>
         </div>
       </div>
 

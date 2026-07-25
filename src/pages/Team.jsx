@@ -98,7 +98,7 @@ export default function Team() {
   const handleInvite = () => {
     if (!inviteName.trim()) return;
     inviteMember(inviteName, inviteEmail);
-    const email = inviteEmail.trim() || `${inviteName.trim().toLowerCase().replace(/\s+/g, ".")}@inkflow.ai`;
+    const email = inviteEmail.trim() || `${inviteName.trim().toLowerCase().replace(/\s+/g, ".")}@quillora.ai`;
     setInvitations((prev) => [{ id: `i-${prev.length + 1}`, email, by: "You", when: "just now", status: "PENDING" }, ...prev]);
     setInviteName("");
     setInviteEmail("");

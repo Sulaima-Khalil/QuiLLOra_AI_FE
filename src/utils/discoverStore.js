@@ -19,7 +19,7 @@ import api from "./apiClient";
 
 const COVERS = [ai1, ai2, rain1, rain2, rain3, rain4, design1, design2, engineering];
 
-const CHANGE_EVENT = "inkflow-discover-change";
+const CHANGE_EVENT = "quillora-discover-change";
 
 let snapshot = [];
 let categories = [];

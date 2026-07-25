@@ -2,15 +2,31 @@ import api, { clearSessionFlag, errorMessage, hasSessionFlag, setSessionFlag, un
 import { setProfile, clearProfile } from "./profileStore";
 
 /**
- * Authentication against the InkFlow AI backend.
+ * Authentication against the QuiLLora AI backend.
  *
  * Exported names and call signatures are unchanged from the localStorage
  * build, so Login.jsx, Register.jsx and the route guards need no edits. The
  * pages read `err.response.data.message`, which the backend already provides.
  */
 
-/** Seeded demo account — created by the backend's `npm run seed`. */
-export const DEMO_CREDENTIALS = { email: "alex@inkflow.ai", password: "demo1234" };
+/**
+ * Seeded demo account, supplied by the environment rather than hardcoded.
+ *
+ * Two reasons: a literal email/password pair in committed source is
+ * indistinguishable from a leaked credential to a secret scanner, and a demo
+ * login should not be pre-filled in a production build at all. Set
+ * VITE_DEMO_EMAIL and VITE_DEMO_PASSWORD locally to restore the shortcut —
+ * see .env.example. The values match the backend's `npm run seed`.
+ */
+export const DEMO_CREDENTIALS = {
+  email: import.meta.env.VITE_DEMO_EMAIL ?? "",
+  password: import.meta.env.VITE_DEMO_PASSWORD ?? "",
+};
+
+/** True when a demo account is configured, so the UI can hide the hint. */
+export const hasDemoCredentials = Boolean(
+  DEMO_CREDENTIALS.email && DEMO_CREDENTIALS.password,
+);
 
 /** Normalises an axios failure into the `{ response: { data: { message } } }`
  *  shape the auth pages already destructure. */
