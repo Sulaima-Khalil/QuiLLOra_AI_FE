@@ -22,6 +22,9 @@ import ResetPassword from '../pages/ResetPassword';
 import ResetSuccess from '../pages/ResetSuccess';
 import Landing from '../pages/Landing';
 import NotFound from '../pages/NotFound';
+import Upgrade from '../pages/Upgrade';
+import UpgradeCheckout from '../pages/UpgradeCheckout';
+import UpgradeSuccess from '../pages/UpgradeSuccess';
 import { ProtectedRoute } from '../components/shared/route/ProtectedRoute';
 import { GuestRoute } from '../components/shared/route/GuestRoute';
 
@@ -100,6 +103,32 @@ const router = createBrowserRouter([
       { path: 'archive', element: <Archive /> },
       { path: 'setting', element: <Setting /> },
     ],
+  },
+  // Standalone full-page flow — deliberately outside the dashboard layout so
+  // it renders without the sidebar or top bar.
+  {
+    path: '/dashboard/upgrade',
+    element: (
+      <ProtectedRoute>
+        <Upgrade />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/dashboard/upgrade/checkout',
+    element: (
+      <ProtectedRoute>
+        <UpgradeCheckout />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/dashboard/upgrade/success',
+    element: (
+      <ProtectedRoute>
+        <UpgradeSuccess />
+      </ProtectedRoute>
+    ),
   },
   {
     path: '/dashboard/write',

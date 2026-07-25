@@ -9,16 +9,23 @@ import api from "./apiClient";
 
 const CHANGE_EVENT = "quillora-team-change";
 
-const ROLES = ["Admin", "Editor", "Viewer"];
+/**
+ * Used until `GET /team` answers. The server is the authority on the role
+ * vocabulary — it returns `roles` alongside the members — so this is only a
+ * first-render fallback, never the source of truth.
+ */
+const FALLBACK_ROLES = ["Admin", "Editor", "Viewer"];
 
 let snapshot = [];
+let roles = FALLBACK_ROLES;
 let loaded = false;
 let inFlight = null;
 
 const emit = () => window.dispatchEvent(new Event(CHANGE_EVENT));
 
-const setSnapshot = (members) => {
+const setSnapshot = (members, serverRoles) => {
   snapshot = members;
+  if (serverRoles?.length) roles = serverRoles;
   loaded = true;
   emit();
   return snapshot;
@@ -29,14 +36,18 @@ export const getTeam = () => snapshot;
 
 export const isTeamLoaded = () => loaded;
 
-export const getRoles = () => ROLES;
+/** Roles as reported by the API, falling back to the known set before load. */
+export const getRoles = () => roles;
 
 export const refreshTeam = async () => {
   if (inFlight) return inFlight;
 
   inFlight = api
     .get("/team")
-    .then((response) => setSnapshot(response.data.data?.members ?? []))
+    .then((response) => {
+      const payload = response.data.data ?? {};
+      return setSnapshot(payload.members ?? [], payload.roles);
+    })
     .finally(() => {
       inFlight = null;
     });

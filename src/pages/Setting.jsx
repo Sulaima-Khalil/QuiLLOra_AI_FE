@@ -45,6 +45,7 @@ import {
 } from "../utils/profileStore";
 import { logoutUser } from "../utils/auth";
 import { getTeam, getRoles, subscribeTeam, refreshTeam, inviteMember, updateMemberRole, removeMember as removeTeamMember } from "../utils/teamStore";
+import { getSubscription, subscribeSubscription, planById, priceFor, formatDate } from "../utils/planStore";
 
 const DEFAULT_SETTINGS = {
   tone: "Academic",
@@ -142,6 +143,7 @@ export const Setting = () => {
   const [editorialUpdates, setEditorialUpdates] = useState(savedSettings.editorialUpdates);
   const [analyticsReports, setAnalyticsReports] = useState(savedSettings.analyticsReports);
   const [team, setTeam] = useState(getTeam);
+  const [subscription, setSubscription] = useState(getSubscription);
   const [memberMenu, setMemberMenu] = useState({ anchor: null, member: null });
   const [saved, setSaved] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
@@ -150,6 +152,8 @@ export const Setting = () => {
   const [deletePassword, setDeletePassword] = useState("");
   const [inviteEmail, setInviteEmail] = useState("");
   const [saveError, setSaveError] = useState("");
+
+  useEffect(() => subscribeSubscription(setSubscription), []);
 
   useEffect(() => {
     const unsubscribeTeam = subscribeTeam(setTeam);
@@ -401,7 +405,7 @@ export const Setting = () => {
             <SectionTitle icon={CreditCard}>Subscription Management</SectionTitle>
           </Box>
           <Chip
-            label="Active"
+            label={subscription.status === "cancelled" ? "Cancelled" : "Active"}
             size="small"
             sx={{ bgcolor: "#DFF7EE", color: brandColors.primary, fontWeight: 700, fontSize: 11 }}
           />
@@ -425,17 +429,19 @@ export const Setting = () => {
               Current Plan
             </Typography>
             <Typography variant="h6" sx={{ fontFamily: "'Inter', sans-serif", fontWeight: 800, mt: 0.25 }}>
-              Enterprise Elite
+              {planById(subscription.planId).name}
             </Typography>
             <Typography variant="caption" sx={{ color: "rgba(255,255,255,0.65)" }}>
-              Next billing date: Jan 15, 2025
+              {subscription.renewsAt
+                ? `Next billing date: ${formatDate(subscription.renewsAt)}`
+                : "No paid subscription yet"}
             </Typography>
           </Box>
           <Stack spacing={1.25} sx={{
             alignItems: { xs: "flex-start", sm: "flex-end" }
           }}>
             <Typography sx={{ fontWeight: 800, fontSize: 26, lineHeight: 1 }}>
-              $499
+              ${priceFor(planById(subscription.planId), subscription.cycle)}
               <Box component="span" sx={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.65)" }}>
                 /mo
               </Box>
@@ -443,9 +449,11 @@ export const Setting = () => {
             <Button
               size="small"
               variant="contained"
+              component={RouterLink}
+              to="/dashboard/upgrade"
               sx={{ bgcolor: "#fff", color: brandColors.dark, fontWeight: 700, "&:hover": { bgcolor: "#E6F2EE" } }}
             >
-              Manage Billing
+              {subscription.planId === "starter" ? "Upgrade Plan" : "Manage Billing"}
             </Button>
           </Stack>
         </Box>

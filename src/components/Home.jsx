@@ -37,6 +37,7 @@ import {
 import { logoutUser } from "../utils/auth";
 import { getProfile, getInitials, subscribeProfile } from "../utils/profileStore";
 import { readJSON, writeJSON } from "../utils/storage";
+import { getSubscription, subscribeSubscription, planById } from "../utils/planStore";
 import { useColorMode } from "../theme/useColorMode";
 import { brandColors } from "../theme/muiTheme";
 import QuilloraMark from "./brand/QuilloraMark";
@@ -79,7 +80,7 @@ const navSections = [
   },
 ];
 
-const SidebarContent = ({ onNavigate, onLogout, profile }) => (
+const SidebarContent = ({ onNavigate, onLogout, profile, planName }) => (
   <Box
     sx={{
       width: SIDEBAR_WIDTH,
@@ -199,6 +200,9 @@ const SidebarContent = ({ onNavigate, onLogout, profile }) => (
       <Button
         fullWidth
         size="small"
+        component={NavLink}
+        to="/dashboard/upgrade"
+        onClick={onNavigate}
         sx={{
           mt: 1.25,
           py: 0.5,
@@ -208,6 +212,7 @@ const SidebarContent = ({ onNavigate, onLogout, profile }) => (
           color: "rgba(255,255,255,0.75)",
           border: `1px solid ${brandColors.darkBorder}`,
           "&:hover": { bgcolor: "rgba(255,255,255,0.06)", color: "#fff" },
+          "&.active": { bgcolor: "rgba(44,194,149,0.12)", color: brandColors.mint, borderColor: brandColors.mint },
         }}
       >
         UPGRADE PLAN
@@ -236,7 +241,7 @@ const SidebarContent = ({ onNavigate, onLogout, profile }) => (
           {profile.name}
         </Typography>
         <Typography variant="caption" sx={{ fontSize: 9, letterSpacing: 0.5, color: "rgba(255,255,255,0.45)" }}>
-          PRO ACCOUNT
+          {planName.toUpperCase()} ACCOUNT
         </Typography>
       </Box>
       <IconButton size="small" onClick={onLogout} sx={{ color: "rgba(255,255,255,0.5)", "&:hover": { color: "#fff" } }}>
@@ -251,6 +256,7 @@ export const Home = () => {
   const isMobile = useMediaQuery(muiTheme.breakpoints.down("md"));
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profile, setProfile] = useState(getProfile());
+  const [subscription, setSubscription] = useState(getSubscription());
   const [notifAnchor, setNotifAnchor] = useState(null);
   const [readIds, setReadIds] = useState(() => readJSON(READ_KEY, []));
   const [search, setSearch] = useState("");
@@ -258,6 +264,9 @@ export const Home = () => {
   const { mode, toggleMode } = useColorMode();
 
   useEffect(() => subscribeProfile(setProfile), []);
+  useEffect(() => subscribeSubscription(setSubscription), []);
+
+  const planName = planById(subscription.planId).name;
 
   const handleLogout = () => {
     logoutUser();
@@ -283,11 +292,11 @@ export const Home = () => {
       {/* Sidebar */}
       {isMobile ? (
         <Drawer open={mobileOpen} onClose={() => setMobileOpen(false)}>
-          <SidebarContent onNavigate={() => setMobileOpen(false)} onLogout={handleLogout} profile={profile} />
+          <SidebarContent onNavigate={() => setMobileOpen(false)} onLogout={handleLogout} profile={profile} planName={planName} />
         </Drawer>
       ) : (
         <Box sx={{ width: SIDEBAR_WIDTH, flexShrink: 0, position: "fixed", top: 0, bottom: 0, left: 0 }}>
-          <SidebarContent onLogout={handleLogout} profile={profile} />
+          <SidebarContent onLogout={handleLogout} profile={profile} planName={planName} />
         </Box>
       )}
       {/* Main */}
