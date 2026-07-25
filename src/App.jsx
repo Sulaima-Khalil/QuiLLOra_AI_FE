@@ -23,8 +23,8 @@ const App = () => {
       }
     };
 
-    window.addEventListener('inkflow-session-expired', onExpired);
-    return () => window.removeEventListener('inkflow-session-expired', onExpired);
+    window.addEventListener('quillora-session-expired', onExpired);
+    return () => window.removeEventListener('quillora-session-expired', onExpired);
   }, []);
 
   if (!ready) return null;

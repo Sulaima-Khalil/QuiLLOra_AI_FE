@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Feather, Eye, EyeOff, ArrowRight, Mail, Lock, Github, Check } from "lucide-react";
-import { loginUser, DEMO_CREDENTIALS , getAuthProviders, startOAuth } from "../utils/auth";
+import { Eye, EyeOff, ArrowRight, Mail, Lock, Github, Check } from "lucide-react";
+import { loginUser, getAuthProviders, startOAuth } from "../utils/auth";
 import AuthShowcase, { GoogleIcon } from "../components/auth/AuthShowcase";
+import QuilloraMark from "../components/brand/QuilloraMark";
 import "../components/auth/auth.css";
 
 export default function Login() {
-  const [formData, setFormData] = useState({ email: DEMO_CREDENTIALS.email, password: DEMO_CREDENTIALS.password });
+  const [formData, setFormData] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -40,8 +41,8 @@ export default function Login() {
       <main className="auth-panel">
         <div className="auth-card">
           <Link to="/" className="card-brand">
-            <span className="mark"><Feather size={18} /></span>
-            <span className="word">InkFlow <b>AI</b></span>
+            <QuilloraMark size={34} />
+            <span className="word">QuiLLora <b>AI</b></span>
           </Link>
 
           <h1 className="card-title">Welcome back</h1>
@@ -49,10 +50,6 @@ export default function Login() {
 
           <form className="auth-form" onSubmit={handleSubmit} noValidate>
             {error && <div className="auth-alert error" role="alert">{error}</div>}
-
-            <div className="auth-note">
-              Demo access: <b>{DEMO_CREDENTIALS.email}</b> / <b>{DEMO_CREDENTIALS.password}</b>
-            </div>
 
             <div className="field">
               <label className="field-label" htmlFor="email">Professional Email</label>
@@ -140,12 +137,12 @@ export default function Login() {
           </div>
 
           <p className="auth-switch">
-            New to InkFlow? <Link to="/register" className="link-accent">Create your account</Link>
+            New to QuiLLora? <Link to="/register" className="link-accent">Create your account</Link>
           </p>
         </div>
 
         <p className="auth-legal">
-          © 2024 InkFlow AI · <a href="#">Privacy</a> · <a href="#">Terms</a>
+          © 2024 QuiLLora AI · <a href="#">Privacy</a> · <a href="#">Terms</a>
         </p>
       </main>
     </div>

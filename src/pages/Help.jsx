@@ -33,7 +33,7 @@ const quickLinks = [
 const faqs = [
   {
     q: "How does the AI Writer generate suggestions?",
-    a: "InkFlow AI analyzes your draft's tone, structure, and intent, then offers rewrites, summaries, and tone adjustments you can accept or dismiss. Nothing is published without your review.",
+    a: "QuiLLora AI analyzes your draft's tone, structure, and intent, then offers rewrites, summaries, and tone adjustments you can accept or dismiss. Nothing is published without your review.",
   },
   {
     q: "Can I recover a deleted article?",
@@ -165,7 +165,7 @@ export default function Help() {
               color: "text.secondary"
             }}>
             <Mail size={14} />
-            <Typography variant="caption">support@inkflow.ai</Typography>
+            <Typography variant="caption">support@quillora.ai</Typography>
           </Stack>
           <Stack
             direction="row"

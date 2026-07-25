@@ -8,7 +8,7 @@ import api, { unwrap } from "./apiClient";
  * which is what lets the cache hydrate after the first render.
  */
 
-const CHANGE_EVENT = "inkflow-collections-change";
+const CHANGE_EVENT = "quillora-collections-change";
 
 const EMPTY_STATE = { bookmarks: [], collections: [], articlesById: {} };
 

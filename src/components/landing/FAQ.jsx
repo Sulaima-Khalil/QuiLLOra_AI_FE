@@ -3,12 +3,12 @@ import { ChevronDown } from "lucide-react";
 
 const faqs = [
   {
-    question: "Does InkFlow AI offer a free trial?",
+    question: "Does QuiLLora AI offer a free trial?",
     answer: "Yes. The Free plan lets you publish up to 3 articles with basic SEO tools at no cost, and every paid plan includes a 7-day free trial before you're billed.",
   },
   {
     question: "Who owns the content I create with AI?",
-    answer: "You do. Every draft, edit, and published article generated on InkFlow AI belongs entirely to you, with full rights to publish, edit, or repurpose it anywhere.",
+    answer: "You do. Every draft, edit, and published article generated on QuiLLora AI belongs entirely to you, with full rights to publish, edit, or repurpose it anywhere.",
   },
   {
     question: "Can I cancel or change my plan anytime?",

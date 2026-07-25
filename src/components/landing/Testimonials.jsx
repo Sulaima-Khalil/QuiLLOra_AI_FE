@@ -5,7 +5,7 @@ import { brandColors } from "@/theme/muiTheme";
 
 const testimonials = [
   {
-    quote: "InkFlow AI transformed the way I write and publish. The AI suggestions are incredibly accurate and save me so much time.",
+    quote: "QuiLLora AI transformed the way I write and publish. The AI suggestions are incredibly accurate and save me so much time.",
     name: "Sarah Johnson",
     role: "Tech Writer",
     rating: 5,
@@ -17,7 +17,7 @@ const testimonials = [
     rating: 5,
   },
   {
-    quote: "From writing to SEO to analytics, everything I need is in one place. InkFlow AI is a game-changer.",
+    quote: "From writing to SEO to analytics, everything I need is in one place. QuiLLora AI is a game-changer.",
     name: "Emma Davis",
     role: "Content Creator",
     rating: 5,

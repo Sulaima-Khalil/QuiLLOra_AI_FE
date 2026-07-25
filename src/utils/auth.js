@@ -2,15 +2,12 @@ import api, { clearSessionFlag, errorMessage, hasSessionFlag, setSessionFlag, un
 import { setProfile, clearProfile } from "./profileStore";
 
 /**
- * Authentication against the InkFlow AI backend.
+ * Authentication against the QuiLLora AI backend.
  *
  * Exported names and call signatures are unchanged from the localStorage
  * build, so Login.jsx, Register.jsx and the route guards need no edits. The
  * pages read `err.response.data.message`, which the backend already provides.
  */
-
-/** Seeded demo account — created by the backend's `npm run seed`. */
-export const DEMO_CREDENTIALS = { email: "alex@inkflow.ai", password: "demo1234" };
 
 /** Normalises an axios failure into the `{ response: { data: { message } } }`
  *  shape the auth pages already destructure. */

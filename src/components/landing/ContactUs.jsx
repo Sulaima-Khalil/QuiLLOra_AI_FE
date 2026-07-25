@@ -4,7 +4,7 @@ import { Send, Mail, MessageCircle, Clock, CheckCircle2 } from "lucide-react";
 import { brandColors } from "@/theme/muiTheme";
 
 const methods = [
-  { icon: Mail, label: "Email us", value: "hello@inkflow.ai" },
+  { icon: Mail, label: "Email us", value: "hello@quillora.ai" },
   { icon: MessageCircle, label: "Live chat", value: "Mon–Fri, 9–6" },
   { icon: Clock, label: "Response", value: "Within 24 hours" },
 ];

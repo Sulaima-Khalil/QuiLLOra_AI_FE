@@ -24,7 +24,7 @@ const EMPTY_PROFILE = {
 let snapshot = { ...EMPTY_PROFILE };
 let loaded = false;
 
-const CHANGE_EVENT = "inkflow-profile-change";
+const CHANGE_EVENT = "quillora-profile-change";
 
 const emit = () => window.dispatchEvent(new Event(CHANGE_EVENT));
 

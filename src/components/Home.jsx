@@ -17,7 +17,6 @@ import {
   LinearProgress,
 } from "@mui/material";
 import {
-  Feather,
   LayoutDashboard,
   PenLine,
   Sparkles,
@@ -38,8 +37,10 @@ import {
 import { logoutUser } from "../utils/auth";
 import { getProfile, getInitials, subscribeProfile } from "../utils/profileStore";
 import { readJSON, writeJSON } from "../utils/storage";
+import { getSubscription, subscribeSubscription, planById } from "../utils/planStore";
 import { useColorMode } from "../theme/useColorMode";
 import { brandColors } from "../theme/muiTheme";
+import QuilloraMark from "./brand/QuilloraMark";
 
 const NOTIFICATIONS = [
   { id: "n1", title: "Ava Collins commented on your draft", time: "2m ago" },
@@ -47,7 +48,7 @@ const NOTIFICATIONS = [
   { id: "n3", title: "Weekly analytics report is ready", time: "3h ago" },
   { id: "n4", title: "Sarah Chen invited you to collaborate", time: "Yesterday" },
 ];
-const READ_KEY = "inkflow_notifications_read";
+const READ_KEY = "quillora_notifications_read";
 
 const SIDEBAR_WIDTH = 240;
 
@@ -79,7 +80,7 @@ const navSections = [
   },
 ];
 
-const SidebarContent = ({ onNavigate, onLogout, profile }) => (
+const SidebarContent = ({ onNavigate, onLogout, profile, planName }) => (
   <Box
     sx={{
       width: SIDEBAR_WIDTH,
@@ -104,22 +105,9 @@ const SidebarContent = ({ onNavigate, onLogout, profile }) => (
         pb: 2.5,
         textDecoration: "none"
       }}>
-      <Box
-        sx={{
-          width: 34,
-          height: 34,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          borderRadius: 2,
-          background: `linear-gradient(135deg, ${brandColors.secondary} 0%, ${brandColors.primary} 100%)`,
-          color: "#fff",
-        }}
-      >
-        <Feather size={18} />
-      </Box>
+      <QuilloraMark size={36} style={{ flexShrink: 0 }} />
       <Typography variant="h6" sx={{ color: "#fff" }}>
-        InkFlow <Box component="span" sx={{ color: brandColors.mint }}>AI</Box>
+        QuiLLora <Box component="span" sx={{ color: brandColors.mint }}>AI</Box>
       </Typography>
     </Stack>
 
@@ -212,6 +200,9 @@ const SidebarContent = ({ onNavigate, onLogout, profile }) => (
       <Button
         fullWidth
         size="small"
+        component={Link}
+        to="/dashboard/upgrade"
+        onClick={onNavigate}
         sx={{
           mt: 1.25,
           py: 0.5,
@@ -249,7 +240,7 @@ const SidebarContent = ({ onNavigate, onLogout, profile }) => (
           {profile.name}
         </Typography>
         <Typography variant="caption" sx={{ fontSize: 9, letterSpacing: 0.5, color: "rgba(255,255,255,0.45)" }}>
-          PRO ACCOUNT
+          {planName.toUpperCase()} ACCOUNT
         </Typography>
       </Box>
       <IconButton size="small" onClick={onLogout} sx={{ color: "rgba(255,255,255,0.5)", "&:hover": { color: "#fff" } }}>
@@ -264,6 +255,7 @@ export const Home = () => {
   const isMobile = useMediaQuery(muiTheme.breakpoints.down("md"));
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profile, setProfile] = useState(getProfile());
+  const [subscription, setSubscription] = useState(getSubscription());
   const [notifAnchor, setNotifAnchor] = useState(null);
   const [readIds, setReadIds] = useState(() => readJSON(READ_KEY, []));
   const [search, setSearch] = useState("");
@@ -271,6 +263,9 @@ export const Home = () => {
   const { mode, toggleMode } = useColorMode();
 
   useEffect(() => subscribeProfile(setProfile), []);
+  useEffect(() => subscribeSubscription(setSubscription), []);
+
+  const planName = planById(subscription.planId).name;
 
   const handleLogout = () => {
     logoutUser();
@@ -296,11 +291,11 @@ export const Home = () => {
       {/* Sidebar */}
       {isMobile ? (
         <Drawer open={mobileOpen} onClose={() => setMobileOpen(false)}>
-          <SidebarContent onNavigate={() => setMobileOpen(false)} onLogout={handleLogout} profile={profile} />
+          <SidebarContent onNavigate={() => setMobileOpen(false)} onLogout={handleLogout} profile={profile} planName={planName} />
         </Drawer>
       ) : (
         <Box sx={{ width: SIDEBAR_WIDTH, flexShrink: 0, position: "fixed", top: 0, bottom: 0, left: 0 }}>
-          <SidebarContent onLogout={handleLogout} profile={profile} />
+          <SidebarContent onLogout={handleLogout} profile={profile} planName={planName} />
         </Box>
       )}
       {/* Main */}

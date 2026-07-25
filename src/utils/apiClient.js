@@ -1,7 +1,7 @@
 import axios from "axios";
 
 /**
- * Single axios instance for the InkFlow AI backend.
+ * Single axios instance for the QuiLLora AI backend.
  *
  * Auth travels in HTTP-only cookies, so `withCredentials` is mandatory and
  * the browser attaches the session automatically — there is no token for
@@ -43,7 +43,7 @@ const NO_RETRY = ["/auth/login", "/auth/register", "/auth/refresh", "/auth/logou
 const onSessionLost = () => {
   clearSessionFlag();
   // Let the app react (route guards, banners) without a hard reload.
-  window.dispatchEvent(new Event("inkflow-session-expired"));
+  window.dispatchEvent(new Event("quillora-session-expired"));
 };
 
 api.interceptors.response.use(
@@ -79,7 +79,7 @@ api.interceptors.response.use(
  * never a credential. The server remains the only authority.
  * ------------------------------------------------------------------------ */
 
-const SESSION_KEY = "inkflow_session";
+const SESSION_KEY = "quillora_session";
 
 export const setSessionFlag = (user) => {
   try {

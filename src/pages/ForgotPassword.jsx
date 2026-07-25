@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Feather, Mail, ArrowRight, ArrowLeft, ShieldCheck } from "lucide-react";
+import { Mail, ArrowRight, ArrowLeft, ShieldCheck } from "lucide-react";
 import { requestPasswordReset } from "../utils/auth";
+import { rememberResetEmail } from "../utils/resetFlow";
 import AuthShowcase from "../components/auth/AuthShowcase";
+import QuilloraMark from "../components/brand/QuilloraMark";
 import RecoverySteps from "../components/auth/RecoverySteps";
 import "../components/auth/auth.css";
 
@@ -22,6 +24,7 @@ export default function ForgotPassword() {
       await requestPasswordReset(email);
       // The backend answers identically whether or not the account exists, so
       // the next screen must not imply the address was found.
+      rememberResetEmail(email);
       navigate("/verify-reset-code", { state: { email } });
     } catch (err) {
       setError(err.response?.data?.message || "Could not send the reset code. Please try again.");
@@ -41,8 +44,8 @@ export default function ForgotPassword() {
               <ArrowLeft size={17} />
             </Link>
             <Link to="/" className="card-brand">
-              <span className="mark"><Feather size={18} /></span>
-              <span className="word">InkFlow <b>AI</b></span>
+              <QuilloraMark size={34} />
+              <span className="word">QuiLLora <b>AI</b></span>
             </Link>
           </div>
 
@@ -93,7 +96,7 @@ export default function ForgotPassword() {
         </div>
 
         <p className="auth-legal">
-          © 2024 InkFlow AI · <a href="#">Privacy</a> · <a href="#">Terms</a>
+          © 2024 QuiLLora AI · <a href="#">Privacy</a> · <a href="#">Terms</a>
         </p>
       </main>
     </div>

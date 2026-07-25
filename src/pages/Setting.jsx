@@ -43,8 +43,9 @@ import {
   deleteAccount,
   getInitials,
 } from "../utils/profileStore";
-import { logoutUser } from "../utils/auth";
+import { logoutUser, listSessions } from "../utils/auth";
 import { getTeam, getRoles, subscribeTeam, refreshTeam, inviteMember, updateMemberRole, removeMember as removeTeamMember } from "../utils/teamStore";
+import { getSubscription, subscribeSubscription, planById, priceFor, formatDate } from "../utils/planStore";
 
 const DEFAULT_SETTINGS = {
   tone: "Academic",
@@ -57,18 +58,49 @@ const DEFAULT_SETTINGS = {
 
 const tones = ["Academic", "Minimalist", "Persuasive", "Technical"];
 
-const sessions = [
-  {
-    device: "MacBook Pro - San Francisco, CA",
-    meta: "Current Session • Chrome",
-    current: true,
-  },
-  {
-    device: "iPhone 15 Pro - San Francisco, CA",
-    meta: "2 hours ago • InkFlow App",
-    current: false,
-  },
-];
+/** "Mozilla/5.0 (Macintosh…) Chrome/… Safari/…" -> "Chrome on macOS". */
+const describeDevice = (userAgent = "") => {
+  const browser =
+    /Edg\//.test(userAgent) ? "Edge"
+    : /OPR\//.test(userAgent) ? "Opera"
+    : /Chrome\//.test(userAgent) ? "Chrome"
+    : /Safari\//.test(userAgent) ? "Safari"
+    : /Firefox\//.test(userAgent) ? "Firefox"
+    : "Unknown browser";
+
+  const platform =
+    /Windows/.test(userAgent) ? "Windows"
+    : /Macintosh|Mac OS/.test(userAgent) ? "macOS"
+    : /iPhone|iPad/.test(userAgent) ? "iOS"
+    : /Android/.test(userAgent) ? "Android"
+    : /Linux/.test(userAgent) ? "Linux"
+    : "";
+
+  return platform ? `${browser} on ${platform}` : browser;
+};
+
+/** Coarse "how long ago" label — enough for a session list. */
+const timeAgo = (value) => {
+  const seconds = Math.floor((Date.now() - new Date(value).getTime()) / 1000);
+  if (seconds < 60) return "Just now";
+
+  const units = [
+    ["minute", 60],
+    ["hour", 60],
+    ["day", 24],
+    ["month", 30],
+  ];
+
+  let amount = Math.floor(seconds / 60);
+  let unit = "minute";
+
+  for (let i = 0; i < units.length - 1 && amount >= units[i + 1][1]; i += 1) {
+    amount = Math.floor(amount / units[i + 1][1]);
+    unit = units[i + 1][0];
+  }
+
+  return `${amount} ${unit}${amount === 1 ? "" : "s"} ago`;
+};
 
 const billingHistory = [
   { date: "Dec 15, 2024", amount: "$499.00" },
@@ -142,6 +174,9 @@ export const Setting = () => {
   const [editorialUpdates, setEditorialUpdates] = useState(savedSettings.editorialUpdates);
   const [analyticsReports, setAnalyticsReports] = useState(savedSettings.analyticsReports);
   const [team, setTeam] = useState(getTeam);
+  const [subscription, setSubscription] = useState(getSubscription);
+  const [sessions, setSessions] = useState([]);
+  const [sessionsLoading, setSessionsLoading] = useState(true);
   const [memberMenu, setMemberMenu] = useState({ anchor: null, member: null });
   const [saved, setSaved] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
@@ -150,6 +185,27 @@ export const Setting = () => {
   const [deletePassword, setDeletePassword] = useState("");
   const [inviteEmail, setInviteEmail] = useState("");
   const [saveError, setSaveError] = useState("");
+
+  useEffect(() => subscribeSubscription(setSubscription), []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    listSessions()
+      .then((rows) => {
+        if (!cancelled) setSessions(rows);
+      })
+      .catch(() => {
+        if (!cancelled) setSessions([]);
+      })
+      .finally(() => {
+        if (!cancelled) setSessionsLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     const unsubscribeTeam = subscribeTeam(setTeam);
@@ -219,7 +275,7 @@ export const Setting = () => {
       // The backend requires the password whenever the account has one, and
       // removes every article, collection and team record it owns.
       await deleteAccount(deletePassword);
-      localStorage.removeItem("inkflow_notifications_read");
+      localStorage.removeItem("quillora_notifications_read");
       await logoutUser();
       navigate("/");
     } catch (error) {
@@ -359,9 +415,21 @@ export const Setting = () => {
           Active Sessions
         </Typography>
         <Stack spacing={1} sx={{ mt: 1 }}>
+          {sessionsLoading && (
+            <Typography variant="caption" sx={{ color: "text.secondary" }}>
+              Loading sessions…
+            </Typography>
+          )}
+
+          {!sessionsLoading && sessions.length === 0 && (
+            <Typography variant="caption" sx={{ color: "text.secondary" }}>
+              No other active sessions.
+            </Typography>
+          )}
+
           {sessions.map((s) => (
             <Stack
-              key={s.device}
+              key={s.id}
               direction="row"
               sx={{
                 alignItems: "center",
@@ -371,22 +439,19 @@ export const Setting = () => {
               }}>
               <Box sx={{ flex: 1 }}>
                 <Typography variant="body2" sx={{ fontWeight: 600, color: "text.primary", fontSize: 13 }}>
-                  {s.device}
+                  {describeDevice(s.userAgent)}
                 </Typography>
                 <Typography variant="caption" sx={{ color: "text.secondary" }}>
-                  {s.meta}
+                  {s.current ? "Current session" : `Signed in ${timeAgo(s.createdAt)}`}
+                  {s.ipAddress ? ` • ${s.ipAddress}` : ""}
                 </Typography>
               </Box>
-              {s.current ? (
+              {s.current && (
                 <Chip
                   label="Active"
                   size="small"
                   sx={{ bgcolor: "#DFF7EE", color: brandColors.primary, fontWeight: 700, fontSize: 11 }}
                 />
-              ) : (
-                <Typography component="a" sx={{ ...linkSx, color: "error.main" }}>
-                  Revoke
-                </Typography>
               )}
             </Stack>
           ))}
@@ -401,7 +466,7 @@ export const Setting = () => {
             <SectionTitle icon={CreditCard}>Subscription Management</SectionTitle>
           </Box>
           <Chip
-            label="Active"
+            label={subscription.status === "cancelled" ? "Cancelled" : "Active"}
             size="small"
             sx={{ bgcolor: "#DFF7EE", color: brandColors.primary, fontWeight: 700, fontSize: 11 }}
           />
@@ -425,17 +490,19 @@ export const Setting = () => {
               Current Plan
             </Typography>
             <Typography variant="h6" sx={{ fontFamily: "'Inter', sans-serif", fontWeight: 800, mt: 0.25 }}>
-              Enterprise Elite
+              {planById(subscription.planId).name}
             </Typography>
             <Typography variant="caption" sx={{ color: "rgba(255,255,255,0.65)" }}>
-              Next billing date: Jan 15, 2025
+              {subscription.renewsAt
+                ? `Next billing date: ${formatDate(subscription.renewsAt)}`
+                : "No paid subscription yet"}
             </Typography>
           </Box>
           <Stack spacing={1.25} sx={{
             alignItems: { xs: "flex-start", sm: "flex-end" }
           }}>
             <Typography sx={{ fontWeight: 800, fontSize: 26, lineHeight: 1 }}>
-              $499
+              ${priceFor(planById(subscription.planId), subscription.cycle)}
               <Box component="span" sx={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.65)" }}>
                 /mo
               </Box>
@@ -443,9 +510,11 @@ export const Setting = () => {
             <Button
               size="small"
               variant="contained"
+              component={RouterLink}
+              to="/dashboard/upgrade"
               sx={{ bgcolor: "#fff", color: brandColors.dark, fontWeight: 700, "&:hover": { bgcolor: "#E6F2EE" } }}
             >
-              Manage Billing
+              {subscription.planId === "starter" ? "Upgrade Plan" : "Manage Billing"}
             </Button>
           </Stack>
         </Box>
@@ -632,7 +701,7 @@ export const Setting = () => {
             mt: 1
           }}>
           <Typography variant="body2" sx={{ flex: 1, color: "text.secondary" }}>
-            Permanently delete your InkFlow AI account and all associated editorial data.
+            Permanently delete your QuiLLora AI account and all associated editorial data.
             This action cannot be undone.
           </Typography>
           <Button
@@ -656,7 +725,7 @@ export const Setting = () => {
           mb: 4
         }}>
         <Typography variant="caption" sx={{ flex: 1, color: "text.secondary" }}>
-          © 2024 InkFlow AI. Secure Editorial Environment.
+          © 2024 QuiLLora AI. Secure Editorial Environment.
         </Typography>
         <Stack direction="row" spacing={2.5}>
           {["Privacy Policy", "Terms of Service", "Security Guidelines"].map((label) => (

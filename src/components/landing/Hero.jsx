@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { keyframes } from "@mui/system";
 import { Box, Container, Typography, Button, Stack, Paper, Chip, Avatar } from "@mui/material";
-import { ArrowRight, Play, Sparkles, BarChart3, Zap, Users } from "lucide-react";
+import { ArrowRight, Play, Sparkles, BarChart3, Users } from "lucide-react";
 import { brandColors } from "@/theme/muiTheme";
 
 const inspiration = ["AI in Education", "Sustainable Future", "No-code Revolution"];
@@ -11,40 +11,24 @@ const floaty = keyframes`
   50% { transform: translateY(-9px); }
 `;
 
-// One floating badge on each side of the card (top / right / bottom / left).
+/**
+ * Three badges straddling the card's corners — top-left, top-right and
+ * bottom-right — at every breakpoint. The offsets tighten on small screens so a
+ * pill hangs just over the edge instead of off the side of the viewport, and
+ * they keep floating there rather than collapsing into a list below the card.
+ */
+const CORNERS = {
+  topLeft: { top: { xs: -16, lg: -20 }, left: { xs: -6, lg: -26 } },
+  topRight: { top: { xs: -16, lg: -20 }, right: { xs: -6, lg: -26 } },
+  bottomRight: { bottom: { xs: -16, lg: -20 }, right: { xs: -6, lg: -26 } },
+};
+
+// `short` keeps the two top badges from colliding on a phone, where the card is
+// narrower than the pair of full labels.
 const floatingBadges = [
-  {
-    icon: Sparkles,
-    label: "AI Writing Assistant active",
-    pos: { top: 0, left: "50%" },
-    translate: "-50% -68%",
-    dur: 6,
-    delay: 0,
-  },
-  {
-    icon: BarChart3,
-    label: "Performance Analytics",
-    pos: { top: "50%", right: 0 },
-    translate: "52% -50%",
-    dur: 7,
-    delay: -1.5,
-  },
-  {
-    icon: Users,
-    label: "Real-time collaboration",
-    pos: { bottom: 0, left: "50%" },
-    translate: "-50% 68%",
-    dur: 7.5,
-    delay: -2.5,
-  },
-  {
-    icon: Zap,
-    label: "Instant AI drafts",
-    pos: { top: "50%", left: 0 },
-    translate: "-52% -50%",
-    dur: 8,
-    delay: -1,
-  },
+  { icon: Sparkles, label: "AI Writing Assistant active", short: "AI Assistant", corner: "topLeft", dur: 6, delay: 0 },
+  { icon: BarChart3, label: "Performance Analytics", short: "Analytics", corner: "topRight", dur: 7, delay: -1.5 },
+  { icon: Users, label: "Real-time collaboration", short: "Collaboration", corner: "bottomRight", dur: 7.5, delay: -2.5 },
 ];
 
 export default function Hero() {
@@ -86,7 +70,10 @@ export default function Hero() {
         <Box
           sx={{
             display: "grid",
-            gridTemplateColumns: { xs: "1fr", lg: "1fr 1fr" },
+            // minmax(0,1fr) — not 1fr — or the column floors at its content's
+            // min-content width, pushing the grid wider than a phone viewport
+            // where the hero's overflow:hidden silently crops it.
+            gridTemplateColumns: { xs: "minmax(0, 1fr)", lg: "minmax(0, 1fr) minmax(0, 1fr)" },
             gap: 8,
             alignItems: "center",
           }}
@@ -103,7 +90,7 @@ export default function Hero() {
             </Typography>
 
             <Typography variant="body1" sx={{ mt: 3, maxWidth: 420, fontSize: "1.125rem", color: "text.secondary" }}>
-              InkFlow AI is the all-in-one platform to write, optimize, publish,
+              QuiLLora AI is the all-in-one platform to write, optimize, publish,
               and grow your ideas with the power of AI.
             </Typography>
 
@@ -125,11 +112,8 @@ export default function Hero() {
               maxWidth: { xs: 460, lg: 420 },
               mx: { xs: "auto", lg: 0 },
               ml: { lg: "auto" },
-              mt: { xs: 5, lg: 0 },
-              display: { xs: "flex", lg: "block" },
-              flexDirection: "column",
-              alignItems: "center",
-              gap: { xs: 1.5, lg: 0 },
+              // Room for the two badges straddling the top edge.
+              mt: { xs: 6, lg: 0 },
             }}
           >
             <Paper
@@ -154,7 +138,10 @@ export default function Hero() {
                 spacing={1}
                 sx={{ alignItems: "center", mt: 2, borderRadius: 999, border: "1px solid rgba(45,212,191,0.25)", bgcolor: "rgba(45,212,191,0.08)", px: 2, py: 1.25 }}
               >
-                <Typography variant="body2" noWrap sx={{ flex: 1, color: "text.secondary" }}>
+                {/* minWidth:0 lets this shrink — without it the nowrap string sets
+                    the flex item's floor and pushes the whole page wider than a
+                    phone viewport, clipping the hero. */}
+                <Typography variant="body2" noWrap sx={{ flex: 1, minWidth: 0, color: "text.secondary" }}>
                   e.g. "The future of AI in content marketing"
                 </Typography>
                 <Avatar
@@ -197,38 +184,56 @@ export default function Hero() {
               </Stack>
             </Paper>
 
-            {floatingBadges.map(({ icon: Icon, label, pos, translate, dur, delay }) => (
+            {floatingBadges.map(({ icon: Icon, label, short, corner, dur, delay }) => (
               <Paper
                 key={label}
                 elevation={0}
                 sx={{
-                  position: { xs: "static", lg: "absolute" },
+                  position: "absolute",
+                  zIndex: 1,
                   display: "inline-flex",
                   alignItems: "center",
-                  gap: 1,
-                  px: 1.5,
-                  py: 0.85,
+                  gap: { xs: 0.75, sm: 1 },
+                  px: { xs: 1.1, sm: 1.5 },
+                  py: { xs: 0.6, sm: 0.85 },
                   borderRadius: 2,
                   backgroundImage: "none",
                   background: "linear-gradient(135deg, rgba(45,212,191,0.14) 0%, rgba(13,19,32,0.45) 100%)",
                   backdropFilter: "blur(16px)",
                   border: "1px solid rgba(45,212,191,0.28)",
                   boxShadow: "0 12px 30px -14px rgba(0,0,0,0.55), 0 0 24px -14px rgba(15,158,140,0.55)",
-                  ...pos,
-                  // Floating + off-card offset only on desktop; clean vertical stack on mobile.
-                  "@media (min-width:1200px)": {
-                    ...(translate ? { translate } : {}),
-                    animation: `${floaty} ${dur}s ease-in-out infinite`,
-                    animationDelay: `${delay}s`,
-                  },
+                  ...CORNERS[corner],
+                  animation: `${floaty} ${dur}s ease-in-out infinite`,
+                  animationDelay: `${delay}s`,
                   "@media (prefers-reduced-motion: reduce)": { animation: "none" },
                 }}
               >
-                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", width: 22, height: 22, borderRadius: "50%", bgcolor: "rgba(44,194,149,0.15)", color: "secondary.main" }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: { xs: 19, sm: 22 },
+                    height: { xs: 19, sm: 22 },
+                    flexShrink: 0,
+                    borderRadius: "50%",
+                    bgcolor: "rgba(44,194,149,0.15)",
+                    color: "secondary.main",
+                  }}
+                >
                   <Icon size={12} />
                 </Box>
-                <Typography variant="caption" sx={{ fontWeight: 600, color: "text.primary", whiteSpace: "nowrap" }}>
-                  {label}
+                <Typography
+                  variant="caption"
+                  sx={{
+                    fontWeight: 600,
+                    color: "text.primary",
+                    whiteSpace: "nowrap",
+                    fontSize: { xs: 10.5, sm: "0.75rem" },
+                  }}
+                >
+                  <Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>{label}</Box>
+                  <Box component="span" sx={{ display: { xs: "inline", sm: "none" } }}>{short}</Box>
                 </Typography>
               </Paper>
             ))}

@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
-import { Feather, ShieldCheck, Lock, Sparkles, Send, Star, KeyRound, MailCheck, RotateCcw } from "lucide-react";
+import { ShieldCheck, Lock, Sparkles, Send, Star, KeyRound, MailCheck, RotateCcw } from "lucide-react";
+import QuilloraMark from "../brand/QuilloraMark";
 import "./auth.css";
 
 export const GoogleIcon = () => (
@@ -11,10 +12,10 @@ export const GoogleIcon = () => (
   </svg>
 );
 
-const Brand = () => (
+const Brand = ({ mark = "teal" }) => (
   <Link to="/" className="stage-brand">
-    <span className="mark"><Feather size={20} /></span>
-    <span className="word">InkFlow <b>AI</b></span>
+    <QuilloraMark size={42} color={mark} />
+    <span className="word">QuiLLora <b>AI</b></span>
   </Link>
 );
 
@@ -26,9 +27,9 @@ const TrustFoot = () => (
 );
 
 // The "login" variant: a live workspace preview — returning-writer energy.
-const LoginStage = () => (
+const LoginStage = ({ mark }) => (
   <>
-    <Brand />
+    <Brand mark={mark} />
 
     <div className="stage-main">
       <span className="stage-eyebrow"><span className="pulse" />AI Editorial Suite</span>
@@ -89,12 +90,12 @@ const LoginStage = () => (
 );
 
 // The "signup" variant: onboarding excitement — what you're about to unlock.
-const SignupStage = () => (
+const SignupStage = ({ mark }) => (
   <>
-    <Brand />
+    <Brand mark={mark} />
 
     <div className="stage-main">
-      <span className="stage-eyebrow"><span className="pulse" />Join InkFlow AI</span>
+      <span className="stage-eyebrow"><span className="pulse" />Join QuiLLora AI</span>
       <h1 className="stage-headline">
         Start writing with an <em>intelligent</em> editor.
       </h1>
@@ -147,7 +148,7 @@ const SignupStage = () => (
 
 // The "recovery" variant: reassurance while the user is locked out. `step`
 // (1–3) mirrors the form side so both halves of the screen agree.
-const RecoveryStage = ({ step = 1 }) => {
+const RecoveryStage = ({ step = 1, mark }) => {
   const stages = [
     { icon: <MailCheck size={19} />, title: "Confirm your email", sub: "We send a single-use code, never your password." },
     { icon: <KeyRound size={19} />, title: "Enter the 6-digit code", sub: "It expires in 10 minutes and works once." },
@@ -156,7 +157,7 @@ const RecoveryStage = ({ step = 1 }) => {
 
   return (
     <>
-      <Brand />
+      <Brand mark={mark} />
 
       <div className="stage-main">
         <span className="stage-eyebrow"><span className="pulse" />Account Recovery</span>
@@ -189,7 +190,7 @@ const RecoveryStage = ({ step = 1 }) => {
             &ldquo;Recovery took under a minute and nothing in my workspace
             moved.&rdquo;
           </blockquote>
-          <cite>— Managing Editor, InkFlow AI</cite>
+          <cite>— Managing Editor, QuiLLora AI</cite>
         </div>
       </div>
 
@@ -198,7 +199,7 @@ const RecoveryStage = ({ step = 1 }) => {
   );
 };
 
-export default function AuthShowcase({ variant = "login", step = 1 }) {
+export default function AuthShowcase({ variant = "login", step = 1, mark = "teal" }) {
   return (
     <aside className="auth-stage" aria-hidden>
       <div className="auth-aurora">
@@ -207,9 +208,9 @@ export default function AuthShowcase({ variant = "login", step = 1 }) {
         <span className="blob blob-3" />
       </div>
       <div className="auth-noise" />
-      {variant === "signup" && <SignupStage />}
-      {variant === "recovery" && <RecoveryStage step={step} />}
-      {variant !== "signup" && variant !== "recovery" && <LoginStage />}
+      {variant === "signup" && <SignupStage mark={mark} />}
+      {variant === "recovery" && <RecoveryStage step={step} mark={mark} />}
+      {variant !== "signup" && variant !== "recovery" && <LoginStage mark={mark} />}
     </aside>
   );
 }

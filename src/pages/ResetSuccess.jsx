@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
-import { Feather, Check, ArrowRight, ShieldCheck } from "lucide-react";
+import { Check, ArrowRight, ShieldCheck } from "lucide-react";
 import AuthShowcase from "../components/auth/AuthShowcase";
+import QuilloraMark from "../components/brand/QuilloraMark";
 import RecoverySteps from "../components/auth/RecoverySteps";
 import "../components/auth/auth.css";
 
@@ -16,8 +17,8 @@ export default function ResetSuccess() {
         <div className="auth-card done-wrap">
           <div className="card-head" style={{ justifyContent: "center" }}>
             <Link to="/" className="card-brand">
-              <span className="mark"><Feather size={18} /></span>
-              <span className="word">InkFlow <b>AI</b></span>
+              <QuilloraMark size={34} />
+              <span className="word">QuiLLora <b>AI</b></span>
             </Link>
           </div>
 
@@ -49,7 +50,7 @@ export default function ResetSuccess() {
         </div>
 
         <p className="auth-legal">
-          © 2024 InkFlow AI · <a href="#">Privacy</a> · <a href="#">Terms</a>
+          © 2024 QuiLLora AI · <a href="#">Privacy</a> · <a href="#">Terms</a>
         </p>
       </main>
     </div>

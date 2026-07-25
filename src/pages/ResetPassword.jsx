@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
-import { Feather, Lock, ArrowRight, ArrowLeft, Eye, EyeOff, Check, ShieldCheck } from "lucide-react";
+import { Lock, ArrowRight, ArrowLeft, Eye, EyeOff, Check, ShieldCheck } from "lucide-react";
 import { resetPassword } from "../utils/auth";
+import { forgetResetEmail, getResetEmail } from "../utils/resetFlow";
 import AuthShowcase from "../components/auth/AuthShowcase";
+import QuilloraMark from "../components/brand/QuilloraMark";
 import RecoverySteps from "../components/auth/RecoverySteps";
 import "../components/auth/auth.css";
 
@@ -22,7 +24,7 @@ export default function ResetPassword() {
 
   const token = searchParams.get("token") || "";
   const code = location.state?.code || "";
-  const email = location.state?.email || "";
+  const email = location.state?.email || getResetEmail();
   const authorised = Boolean(token || code);
 
   const [password, setPassword] = useState("");
@@ -54,6 +56,7 @@ export default function ResetPassword() {
     try {
       await resetPassword({ token, code, email, password });
       // The backend revokes every session on reset, so the user signs in fresh.
+      forgetResetEmail();
       navigate("/reset-success", { replace: true });
     } catch (err) {
       setError(err.response?.data?.message || "This reset code is invalid or has expired.");
@@ -62,9 +65,10 @@ export default function ResetPassword() {
     }
   };
 
-  // Back goes one step up whichever path brought the user here.
-  const backTo = code ? "/verify-reset-code" : "/login";
-  const backState = code ? { state: { email } } : {};
+  // Back goes one step up whichever path brought the user here: the emailed
+  // link has no earlier step, the in-app flow returns to the code.
+  const backTo = token ? "/login" : "/verify-reset-code";
+  const backState = token ? {} : { state: { email } };
 
   return (
     <div className="auth">
@@ -77,8 +81,8 @@ export default function ResetPassword() {
               <ArrowLeft size={17} />
             </Link>
             <Link to="/" className="card-brand">
-              <span className="mark"><Feather size={18} /></span>
-              <span className="word">InkFlow <b>AI</b></span>
+              <QuilloraMark size={34} />
+              <span className="word">QuiLLora <b>AI</b></span>
             </Link>
           </div>
 
@@ -93,8 +97,20 @@ export default function ResetPassword() {
           <form className="auth-form" onSubmit={handleSubmit} noValidate>
             {!authorised && (
               <div className="auth-alert error" role="alert">
-                This reset link is missing its code. Start again from{" "}
-                <Link to="/forgot-password" className="link-accent">Forgot password</Link>.
+                {email ? (
+                  <>
+                    Your verification code is no longer in this session.{" "}
+                    <Link to="/verify-reset-code" state={{ email }} className="link-accent">
+                      Enter it again
+                    </Link>{" "}
+                    to continue.
+                  </>
+                ) : (
+                  <>
+                    This reset link is missing its code. Start again from{" "}
+                    <Link to="/forgot-password" className="link-accent">Forgot password</Link>.
+                  </>
+                )}
               </div>
             )}
 
@@ -184,7 +200,7 @@ export default function ResetPassword() {
         </div>
 
         <p className="auth-legal">
-          © 2024 InkFlow AI · <a href="#">Privacy</a> · <a href="#">Terms</a>
+          © 2024 QuiLLora AI · <a href="#">Privacy</a> · <a href="#">Terms</a>
         </p>
       </main>
     </div>

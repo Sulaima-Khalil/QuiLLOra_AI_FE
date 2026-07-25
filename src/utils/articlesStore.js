@@ -21,7 +21,7 @@ import api, { unwrap } from "./apiClient";
 const COVERS = [ai1, ai2, rain1, rain2, rain3, rain4, design1, design2, engineering];
 export const DEFAULT_COVER = ai1;
 
-const CHANGE_EVENT = "inkflow-articles-change";
+const CHANGE_EVENT = "quillora-articles-change";
 
 let snapshot = [];
 let loaded = false;

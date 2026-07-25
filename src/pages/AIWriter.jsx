@@ -34,7 +34,7 @@ const SEED_DOC = {
   title: "The Future of Neural Prose",
   html: [
     "<p>In the quiet intersection of human creativity and algorithmic precision, a new form of literature is beginning to emerge. This is not merely the automation of text, but the augmentation of thought — a neural prose that breathes through the silicon and the soul alike.</p>",
-    "<p>InkFlow AI represents the frontier of this transition. By leveraging transformer models tuned for high-precision editorial standards, writers are no longer constrained by the blank page. Instead, they operate in a collaborative feedback loop where intent is met with structural intelligence.</p>",
+    "<p>QuiLLora AI represents the frontier of this transition. By leveraging transformer models tuned for high-precision editorial standards, writers are no longer constrained by the blank page. Instead, they operate in a collaborative feedback loop where intent is met with structural intelligence.</p>",
     "<blockquote><p>The machine does not replace the writer; it provides the scaffold upon which the architect builds higher than ever before possible.</p></blockquote>",
     "<p>As we look toward the horizon, the distinction between human-authored and machine-enhanced text will continue to blur. What remains constant is the writer's judgment — the taste that decides which suggestions serve the work and which ones dilute it.</p>",
   ].join(""),
@@ -201,7 +201,7 @@ export default function AIWriter() {
           <ArrowLeft size={17} />
         </button>
         <Link to="/dashboard" className="aiw-logo">
-          InkFlow <span>AI</span>
+          QuiLLora <span>AI</span>
         </Link>
         <span className="aiw-topbar-sep" />
         <span className="aiw-doc-label">
