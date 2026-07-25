@@ -1,128 +1,70 @@
-import ai1 from '../../assets/ai1.png';
-import ai2 from '../../assets/ai2.png';
-import rain1 from '../../assets/rain1.png';
-import rain2 from '../../assets/rain2.png';
-import rain3 from '../../assets/rain3.png';
-import rain4 from '../../assets/rain4.png';
-import design1 from '../../assets/design1.png';
-import design2 from '../../assets/design2.png';
-import engineering from '../../assets/engineering.png';
-import { Card } from '../shared/Card';
-import { theme } from '../../theme/Theme';
-export const ArticleCards = ({ activetab }) => {
-  const cardsData = [
-  {
-    img: ai1,
-    heading: "How Generative AI Is Reshaping the Future of Creative Work",
-    description: "Generative AI is changing how creatives approach design, writing, and multimedia projects. Discover the opportunities and challenges it brings.",
-    title: "AI",
-    author: "John Carter",
-    date: "Dec 4, 2025",
-    readingTime: "5 min read",
-    status:"Published"
-  },
-   {
-    img: design1,
-    heading: "User Interviews: The Art of Asking Better Questions",
-    description: "Conducting effective user interviews requires skill. Learn the key techniques to get actionable insights.",
-    title: "UX Research",
-    author: "Ava Collins",
-    date: "Dec 3, 2025",
-    readingTime: "5 min read",
-    status:"Draft"
-  },
-  {
-    img: rain1,
-    heading: "Design Systems: Why Every Brand Needs One",
-    description: "A design system ensures consistency across products and teams. Learn how to build one that scales effectively.",
-    title: "Design",
-    author: "Emma Blake",
-    date: "Nov 30, 2025",
-    readingTime: "5 min read",
-    status:"Draft"
-  },
-  {
-    img: design2,
-    heading: "Why UX Research Is the Foundation of Great Digital Products",
-    description: "UX research uncovers user needs and behaviors. Discover methods to gather insights that drive product success.",
-    title: "UX Research",
-    author: "Olivia Reed",
-    date: "Dec 1, 2025",
-    readingTime: "6 min read",
-    status:"Published"
-  },
-   {
-    img: rain2,
-    heading: "Why Minimalism Still Dominates Digital Aesthetics",
-    description: "Minimalism remains a key principle in modern design. Understand why simplicity improves user experience and engagement.",
-    title: "Design",
-    author: "David Lane",
-    date: "Nov 28, 2025",
-    readingTime: "4 min read",
-    status:"Draft"
-  },
-   {
-    img: ai2,
-    heading: "AI Agents: The Next Evolution Beyond Chatbots",
-    description: "AI agents are taking automation to the next level. Learn how they can handle complex tasks and interact naturally with humans.",
-    title: "AI",
-    author: "Sarah Miles",
-    date: "Dec 2, 2025",
-    readingTime: "6 min read",
-    status:"Draft"
-  },
-  {
-    img: rain3,
-    heading: "Color Psychology: How Colors Influence Digital Behavior",
-    description: "Colors impact emotions and decision-making. Explore how to use color effectively in your designs.",
-    title: "Design",
-    author: "Michael Ross",
-    date: "Nov 25, 2025",
-    readingTime: "4 min read",
-    status:"Published"
-  },
-   {
-    img: engineering,
-    heading: "Breaking Down Distributed Systems for Beginners",
-    description: "Distributed systems are the backbone of modern applications. Get a beginner-friendly introduction to key concepts.",
-    title: "Engineering",
-    author: "Chris Nolan",
-    date: "Dec 4, 2025",
-    readingTime: "7 min read",
-    status:"Draft"
-  },
-  {
-    img: rain4,
-    heading: "The Cognitive Biases That Impact User Decisions",
-    description: "Understanding cognitive biases helps design better experiences. Learn which biases affect digital behavior.",
-    title: "Design",
-    author: "Sophia Young",
-    date: "Nov 27, 2025",
-    readingTime: "5 min read",
-    status:"Published"
-  },
- 
-];
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Typography } from "@mui/material";
+import { ArticleCard as Card, ArticleCardGrid } from "../shared/ArticleCard";
+import { ConfirmDialog } from "../shared/ConfirmDialog";
+import { getArticles, deleteArticle, archiveArticle, restoreArticle } from "../../utils/articlesStore";
 
+export const ArticleCards = ({ activetab, query = "" }) => {
+  const navigate = useNavigate();
+  const [articles, setArticles] = useState(getArticles);
+  const [pendingDelete, setPendingDelete] = useState(null);
 
-  const filteredCards =cardsData.filter((card) => {
-    if(activetab == 0) return true;
-    if(activetab == 1) return card.status == "Published";
-    if(activetab == 2) return card.status == "Draft";
-    return true;
-  })
+  const filtered = articles
+    .filter((a) => a.status !== "Archived")
+    .filter((item) => {
+      if (activetab === 1) return item.status === "Published";
+      if (activetab === 2) return item.status === "Draft";
+      return true;
+    })
+    .filter((item) => `${item.title} ${item.author}`.toLowerCase().includes(query.toLowerCase()));
 
+  const handleArchive = (id) => {
+    archiveArticle(id);
+    setArticles(getArticles());
+  };
 
+  const handleRestore = (id) => {
+    restoreArticle(id);
+    setArticles(getArticles());
+  };
+
+  const confirmDelete = () => {
+    deleteArticle(pendingDelete);
+    setArticles(getArticles());
+    setPendingDelete(null);
+  };
+
+  if (filtered.length === 0) {
+    return (
+      <Typography variant="body2" sx={{ color: "text.secondary", textAlign: "center", py: 6 }}>
+        {query ? `No articles match "${query}".` : "No articles here yet."}
+      </Typography>
+    );
+  }
 
   return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-        gap: theme.spacing.md,
-      }}
-    >
-      <Card cardsData={filteredCards} isArticle />
-    </div>
+    <>
+      <ArticleCardGrid>
+        {filtered.map((item) => (
+          <Card
+            key={item.id}
+            {...item}
+            onEdit={() => navigate(`/dashboard/write?edit=${item.id}`)}
+            onArchive={() => (item.status === "Archived" ? handleRestore(item.id) : handleArchive(item.id))}
+            onDelete={() => setPendingDelete(item.id)}
+          />
+        ))}
+      </ArticleCardGrid>
+
+      <ConfirmDialog
+        open={Boolean(pendingDelete)}
+        title="Delete article?"
+        description="This will permanently remove the article. This action cannot be undone."
+        confirmLabel="Delete"
+        onConfirm={confirmDelete}
+        onClose={() => setPendingDelete(null)}
+      />
+    </>
   );
 };

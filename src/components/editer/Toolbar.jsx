@@ -3,7 +3,7 @@ import { PiTextBBold } from "react-icons/pi";
 import { FaListUl, FaListOl } from "react-icons/fa";
 import { BsImageFill } from "react-icons/bs";
 
-const ToolBar = ({ editor }) => {
+const ToolBar = ({ editor, onCreate }) => {
   const addImage = () => {
     const url = window.prompt("Enter image URL:");
     if (url) editor.chain().focus().setImage({ src: url }).run();
@@ -56,7 +56,7 @@ const ToolBar = ({ editor }) => {
         </div>
       </div>
 
-      <button className="primary-btn">
+      <button className="primary-btn" onClick={onCreate}>
             Create Article
             </button>
     </div>

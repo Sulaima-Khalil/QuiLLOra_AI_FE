@@ -1,25 +1,23 @@
+/* White "paper" editor used inside the Write page document sheet.
+   Uses explicit light colors (not the dark theme vars) since the editor
+   always sits on a white document surface. */
 .editor-container {
   width: 100%;
-  min-height: 500px;
-  border: 1px solid #1f1f1f;
-  border-radius: 12px;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-  overflow: hidden;
 }
 
 .editor-scroll {
   flex: 1;
-  overflow-y: auto;
-  padding: 16px;
+  min-height: 360px;
 }
 
 .ProseMirror {
-  min-height: 400px;
-  font-family: Inter, sans-serif;
-  font-size: 16px;
-  line-height: 1.6;
+  min-height: 360px;
+  font-family: var(--font-body);
+  font-size: 1.05rem;
+  line-height: 1.8;
+  color: #1e293b;
   outline: none;
   white-space: pre-wrap;
   word-break: break-word;
@@ -30,8 +28,10 @@
 }
 
 .ProseMirror h1 {
+  font-family: var(--font-heading);
   font-size: 2rem;
-  font-weight: bold;
+  font-weight: 400;
+  color: #0f172a;
   margin: 1em 0 0.5em;
 }
 
@@ -41,41 +41,79 @@
   margin: 1em 0;
 }
 
+.ProseMirror img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 10px;
+}
+
 .ProseMirror p.is-editor-empty:first-child::before {
   content: attr(data-placeholder);
-  color: #9ca3af;
+  color: #94a3b8;
   pointer-events: none;
+  float: left;
+  height: 0;
 }
 
 .menu-bar {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-  padding: 12px;
-  border-bottom: 1px solid #1f1f1f;
-  gap: 8px;
+  align-items: center;
+  gap: 10px;
+  padding: 0 0 14px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .menu-bar-box {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
 }
 
 .menu-bar button {
-  padding: 6px 12px;
-  background: black;
-  border: none;
-  color: white;
+  min-width: 34px;
+  height: 34px;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #f1f5f4;
+  border: 1px solid #e2e8f0;
+  color: #334155;
   cursor: pointer;
   font-size: 14px;
-  border-radius: 6px;
-  transition: all 0.2s;
+  font-weight: 600;
+  border-radius: 8px;
+  transition: all 0.15s ease;
 }
 
 .menu-bar button:hover {
-  background: #3b82f6;
-  font-weight: 600;
+  background: #0f9e8c;
+  border-color: #0f9e8c;
+  color: #fff;
+}
+
+.primary-btn {
+  min-width: auto;
+  padding: 0 18px !important;
+  height: 36px;
+  background: #0f9e8c !important;
+  border: 1px solid #0f9e8c !important;
+  color: #fff !important;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+  border-radius: 8px;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.primary-btn:hover {
+  background: #0c8375 !important;
+  border-color: #0c8375 !important;
 }
 
 .font-size-wrapper {
@@ -86,31 +124,41 @@
 .font-size-wrapper select {
   height: 34px;
   padding: 0 10px;
-  background: #000;
-  color: #fff;
-  border: 1px solid #1f1f1f;
-  border-radius: 6px;
+  background: #f1f5f4;
+  color: #334155;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
   font-size: 14px;
   cursor: pointer;
   outline: none;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
   appearance: none;
 }
 
-/* Hover */
 .font-size-wrapper select:hover {
-  background: #151515;
+  background: #e6f4f1;
 }
 
-/* Focus */
 .font-size-wrapper select:focus {
-  border-color: #7c5cff;
-  box-shadow: 0 0 0 2px rgba(124, 92, 255, 0.25);
+  border-color: #0f9e8c;
+  box-shadow: 0 0 0 2px rgba(15, 158, 140, 0.2);
 }
 
-/* Dropdown options */
 .font-size-wrapper option {
-  background: #0e0e0e;
-  color: #fff;
+  background: #ffffff;
+  color: #334155;
 }
 
+@media (max-width: 600px) {
+  .ProseMirror {
+    min-height: 280px;
+    font-size: 1rem;
+  }
+  .menu-bar {
+    gap: 8px;
+  }
+  .menu-bar button {
+    min-width: 32px;
+    height: 32px;
+  }
+}
