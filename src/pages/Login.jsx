@@ -1,438 +1,153 @@
-import { useState } from 'react';
-import { Mail, Lock, User, Feather } from 'lucide-react';
-import {useNavigate } from 'react-router-dom'
-import { registerUser, loginUser } from '../utils/auth';
-export default function AuthPage() {
-  const [isLogin, setIsLogin] = useState(true);
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: ''
-  });
- const navigate = useNavigate();
-const handleSubmit = async (e) => {
-  e.preventDefault();
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Feather, Eye, EyeOff, ArrowRight, Mail, Lock, Github, Check } from "lucide-react";
+import { loginUser, DEMO_CREDENTIALS , getAuthProviders, startOAuth } from "../utils/auth";
+import AuthShowcase, { GoogleIcon } from "../components/auth/AuthShowcase";
+import "../components/auth/auth.css";
 
-  try {
-    if (isLogin) {
-      const data = await loginUser({ email: formData.email, password: formData.password });
-      console.log("Logged in:", data);
-      navigate('/Discover')
-    } else {
-      if (formData.password !== formData.confirmPassword) {
-        alert("Passwords do not match!");
-        return;
-      }
+export default function Login() {
+  const [formData, setFormData] = useState({ email: DEMO_CREDENTIALS.email, password: DEMO_CREDENTIALS.password });
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const [providers, setProviders] = useState([]);
 
-      const data = await registerUser({ name: formData.name, email: formData.email, password: formData.password });
-      console.log("Registered:", data);
-      navigate ("/login")
+  useEffect(() => {
+    getAuthProviders().then(setProviders);
+  }, []);
+
+  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+    try {
+      await loginUser({ email: formData.email, password: formData.password });
+      navigate("/dashboard");
+    } catch (err) {
+      setError(err.response?.data?.message || "Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
     }
-  } catch (err) {
-    console.error(err);
-    alert(err.response?.data?.message || "Something went wrong");
-  }
-};
-
-
-
-
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const toggleMode = () => {
-    setIsLogin(!isLogin);
-    setFormData({ name: '', email: '', password: '', confirmPassword: '' });
   };
 
   return (
-    <div style={{
-      height: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-    }}>
-      <div style={{
-        width: '100%',
-        maxWidth: '400px',
-      }}>
-        {/* Logo and Header */}
-        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-          <div style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: '64px',
-            height: '64px',
-            backgroundColor: '#4f46e5',
-            borderRadius: '16px',
-            marginBottom: '16px',
-            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
-          }}>
-            <Feather style={{ width: '32px', height: '32px',color: 'black' ,background:'#4f46e5'}} />
-          </div>
-          <h1 style={{
-            fontSize: '30px',
-            fontWeight: '700',
-            marginBottom: '8px',
-            color: 'black'
-          }}>Lumina</h1>
-          <p style={{ color: '#4b5563' }}>Your creative writing companion</p>
-        </div>
+    <div className="auth">
+      <AuthShowcase variant="login" />
 
-        {/* Auth Card */}
-        <div style={{
-          border:'2px solid gray',
-          borderRadius: '16px',
-          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-          padding: '32px'
-        }}>
-          <div style={{ display: 'flex', gap: '8px', marginBottom: '24px' }}>
-            <button
-              onClick={() => setIsLogin(true)}
-              style={{
-                flex: '1',
-                padding: '8px 16px',
-                borderRadius: '8px',
-                fontWeight: '500',
-                transition: 'all 0.3s ease',
-                backgroundColor: isLogin ? '#4f46e5' : '#f3f4f6',
-                color: isLogin ? '#ffffff' : '#4b5563',
-                border: 'none',
-                cursor: 'pointer',
-                boxShadow: isLogin ? '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)' : 'none'
-              }}
-            >
-              Login
-            </button>
-            <button
-              onClick={() => setIsLogin(false)}
-              style={{
-                flex: '1',
-                padding: '8px 16px',
-                borderRadius: '8px',
-                fontWeight: '500',
-                transition: 'all 0.3s ease',
-                backgroundColor: !isLogin ? '#4f46e5' : '#f3f4f6',
-                color: !isLogin ? '#ffffff' : '#4b5563',
-                border: 'none',
-                cursor: 'pointer',
-                boxShadow: !isLogin ? '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)' : 'none'
-              }}
-            >
-              Sign Up
-            </button>
-          </div>
+      <main className="auth-panel">
+        <div className="auth-card">
+          <Link to="/" className="card-brand">
+            <span className="mark"><Feather size={18} /></span>
+            <span className="word">InkFlow <b>AI</b></span>
+          </Link>
 
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {!isLogin && (
-              <div>
-                <label style={{
-                  display: 'block',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  color: 'white',
-                  marginBottom: '8px',
-                  color: 'black'
-                }}>
-                  Full Name
-                </label>
-                <div style={{ position: 'relative' }}>
-                  <User style={{
-                    position: 'absolute',
-                    left: '12px',
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    width: '20px',
-                    height: '20px',
-                    color: 'black'
-                  }} />
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    style={{
-                      width: '80%',
-                      paddingLeft: '40px',
-                      paddingRight: '16px',
-                      paddingTop: '12px',
-                      paddingBottom: '12px',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '8px',
-                      outline: 'none',
-                      transition: 'all 0.3s ease',
-                      color: 'black'
-                    }}
-                    onFocus={(e) => {
-                      e.target.style.borderColor = '#4f46e5';
-                      e.target.style.boxShadow = '0 0 0 3px rgba(79, 70, 229, 0.1)';
-                    }}
-                    onBlur={(e) => {
-                      e.target.style.borderColor = '#d1d5db';
-                      e.target.style.boxShadow = 'none';
-                    }}
-                    placeholder="John Doe"
-                    required={!isLogin}
-                  />
-                </div>
-              </div>
-            )}
+          <h1 className="card-title">Welcome back</h1>
+          <p className="card-sub">Access your secure editorial workspace.</p>
 
-            <div>
-              <label style={{
-                display: 'block',
-                fontSize: '14px',
-                fontWeight: '500',
-                color: 'white',
-                marginBottom: '8px',
-                color: 'black'
-              }}>
-                Email Address
-              </label>
-              <div style={{ position: 'relative' }}>
-                <Mail style={{
-                  position: 'absolute',
-                  left: '12px',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  width: '20px',
-                  height: '20px',
-                  color: 'black'
-                }} />
+          <form className="auth-form" onSubmit={handleSubmit} noValidate>
+            {error && <div className="auth-alert error" role="alert">{error}</div>}
+
+            <div className="auth-note">
+              Demo access: <b>{DEMO_CREDENTIALS.email}</b> / <b>{DEMO_CREDENTIALS.password}</b>
+            </div>
+
+            <div className="field">
+              <label className="field-label" htmlFor="email">Professional Email</label>
+              <div className="field-wrap">
+                <Mail className="lead" size={17} />
                 <input
+                  id="email"
                   type="email"
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  style={{
-                    width: '80%',
-                    paddingLeft: '40px',
-                    paddingRight: '16px',
-                    paddingTop: '12px',
-                    paddingBottom: '12px',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '8px',
-                    outline: 'none',
-                    transition: 'all 0.3s ease',
-                    color: 'black'
-                  }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = '#4f46e5';
-                    e.target.style.boxShadow = '0 0 0 3px rgba(79, 70, 229, 0.1)';
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = '#d1d5db';
-                    e.target.style.boxShadow = 'none';
-                  }}
-                  placeholder="you@example.com"
+                  placeholder="name@organization.com"
+                  autoComplete="email"
                   required
                 />
               </div>
             </div>
 
-            <div>
-              <label style={{
-                display: 'block',
-                fontSize: '14px',
-                fontWeight: '500',
-                color: 'white',
-                marginBottom: '8px',
-                color: 'black'
-              }}>
-                Password
-              </label>
-              <div style={{ position: 'relative' }}>
-                <Lock style={{
-                  position: 'absolute',
-                  left: '12px',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  width: '20px',
-                  height: '20px',
-                  color: 'black'
-                }} />
+            <div className="field">
+              <div className="field-row">
+                <label className="field-label" htmlFor="password">Password</label>
+                <Link to="/forgot-password" className="link-accent" style={{ fontSize: 12.5 }}>
+                  Forgot password?
+                </Link>
+              </div>
+              <div className="field-wrap">
+                <Lock className="lead" size={17} />
                 <input
-                  type="password"
+                  id="password"
+                  type={showPassword ? "text" : "password"}
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  style={{
-                    width: '80%',
-                    paddingLeft: '40px',
-                    paddingRight: '16px',
-                    paddingTop: '12px',
-                    paddingBottom: '12px',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '8px',
-                    outline: 'none',
-                    transition: 'all 0.3s ease',
-                    color: 'black'
-                  }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = '#4f46e5';
-                    e.target.style.boxShadow = '0 0 0 3px rgba(79, 70, 229, 0.1)';
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = '#d1d5db';
-                    e.target.style.boxShadow = 'none';
-                  }}
                   placeholder="••••••••"
+                  autoComplete="current-password"
                   required
                 />
+                <button
+                  type="button"
+                  className="toggle"
+                  onClick={() => setShowPassword((s) => !s)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  aria-pressed={showPassword}
+                >
+                  {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                </button>
               </div>
             </div>
 
-            {!isLogin && (
-              <div>
-                <label style={{
-                  display: 'block',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  color: 'black',
-                  marginBottom: '8px'
-                }}>
-                  Confirm Password
-                </label>
-                <div style={{ position: 'relative' }}>
-                  <Lock style={{
-                    position: 'absolute',
-                    left: '12px',
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    width: '20px',
-                    height: '20px',
-                    color: 'black'
-                  }} />
-                  <input
-                    type="password"
-                    name="confirmPassword"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    style={{
-                      width: '80%',
-                      paddingLeft: '40px',
-                      paddingRight: '16px',
-                      paddingTop: '12px',
-                      paddingBottom: '12px',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '8px',
-                      outline: 'none',
-                      transition: 'all 0.3s ease',
-                      color: 'black'
-                    }}
-                    onFocus={(e) => {
-                      e.target.style.borderColor = '#4f46e5';
-                      e.target.style.boxShadow = '0 0 0 3px rgba(79, 70, 229, 0.1)';
-                    }}
-                    onBlur={(e) => {
-                      e.target.style.borderColor = '#d1d5db';
-                      e.target.style.boxShadow = 'none';
-                    }}
-                    placeholder="••••••••"
-                    required={!isLogin}
-                  />
-                </div>
-              </div>
-            )}
+            <label className="check remember">
+              <input type="checkbox" defaultChecked />
+              <span className="box"><Check size={12} strokeWidth={3} /></span>
+              <span className="txt">Remember this session for 30 days</span>
+            </label>
 
-            {isLogin && (
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                fontSize: '14px'
-              }}>
-                <label style={{ display: 'flex', alignItems: 'center' }}>
-                  <input
-                    type="checkbox"
-                    style={{
-                      width: '16px',
-                      height: '16px',
-                      color: '#4f46e5',
-                      borderColor: '#d1d5db',
-                      borderRadius: '4px',
-                      marginRight: '8px',
-                    }}
-                  />
-                  <span style={{ color: '#4b5563' }}>Remember me</span>
-                </label>
-                <a href="#" style={{
-                  color: '#4f46e5',
-                  fontWeight: '500',
-                  textDecoration: 'none'
-                }} onMouseEnter={(e) => e.target.style.color = '#4338ca'}
-                  onMouseLeave={(e) => e.target.style.color = '#4f46e5'}>
-                  Forgot password?
-                </a>
-              </div>
-            )}
-
-            <button
-              type="submit"
-              style={{
-                width: '100%',
-                backgroundColor: '#4f46e5',
-                color: '#ffffff',
-                padding: '12px',
-                borderRadius: '8px',
-                fontWeight: '500',
-                border: 'none',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.backgroundColor = '#4338ca';
-                e.target.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.backgroundColor = '#4f46e5';
-                e.target.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)';
-              }}
-            >
-              {isLogin ? 'Login' : 'Create Account'}
+            <button type="submit" className="btn-primary" disabled={loading}>
+              {loading ? "Signing in…" : "Sign in to workspace"}
+              {!loading && <ArrowRight size={17} />}
             </button>
           </form>
 
-          <div style={{
-            marginTop: '24px',
-            textAlign: 'center',
-            fontSize: '14px',
-            color: '#4b5563'
-          }}>
-            {isLogin ? "Don't have an account? " : "Already have an account? "}
+          <div className="auth-divider">OR CONTINUE WITH</div>
+
+          <div className="social-row">
+            {/* Rendered only when the backend has credentials for the provider,
+                so a button never leads to a 503. */}
             <button
-              onClick={toggleMode}
-              style={{
-                color: '#4f46e5',
-                fontWeight: '500',
-                backgroundColor: 'transparent',
-                border: 'none',
-                cursor: 'pointer',
-                padding: '0'
-              }}
-              onMouseEnter={(e) => e.target.style.color = '#4338ca'}
-              onMouseLeave={(e) => e.target.style.color = '#4f46e5'}
+              type="button"
+              className="btn-social"
+              onClick={() => startOAuth("google")}
+              disabled={!providers.includes("google")}
+              title={providers.includes("google") ? "Continue with Google" : "Google sign-in is not configured"}
             >
-              {isLogin ? 'Sign up' : 'Login'}
+              <GoogleIcon /> Google
+            </button>
+            <button
+              type="button"
+              className="btn-social"
+              onClick={() => startOAuth("github")}
+              disabled={!providers.includes("github")}
+              title={providers.includes("github") ? "Continue with GitHub" : "GitHub sign-in is not configured"}
+            >
+              <Github size={16} /> GitHub
             </button>
           </div>
+
+          <p className="auth-switch">
+            New to InkFlow? <Link to="/register" className="link-accent">Create your account</Link>
+          </p>
         </div>
 
-        {/* Footer */}
-        <p style={{
-          textAlign: 'center',
-          fontSize: '14px',
-          color: '#4b5563',
-          marginTop: '24px'
-        }}>
-          By continuing, you agree to our Terms of Service and Privacy Policy
+        <p className="auth-legal">
+          © 2024 InkFlow AI · <a href="#">Privacy</a> · <a href="#">Terms</a>
         </p>
-      </div>
+      </main>
     </div>
   );
 }
-
