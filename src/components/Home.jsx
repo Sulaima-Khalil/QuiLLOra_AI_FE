@@ -200,7 +200,7 @@ const SidebarContent = ({ onNavigate, onLogout, profile, planName }) => (
       <Button
         fullWidth
         size="small"
-        component={NavLink}
+        component={Link}
         to="/dashboard/upgrade"
         onClick={onNavigate}
         sx={{
@@ -212,7 +212,6 @@ const SidebarContent = ({ onNavigate, onLogout, profile, planName }) => (
           color: "rgba(255,255,255,0.75)",
           border: `1px solid ${brandColors.darkBorder}`,
           "&:hover": { bgcolor: "rgba(255,255,255,0.06)", color: "#fff" },
-          "&.active": { bgcolor: "rgba(44,194,149,0.12)", color: brandColors.mint, borderColor: brandColors.mint },
         }}
       >
         UPGRADE PLAN

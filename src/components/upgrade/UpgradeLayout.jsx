@@ -11,7 +11,7 @@ import { brandColors } from "../../theme/muiTheme";
  * app top bar, so nothing competes with the plan choice. All that's left is the
  * wordmark and a way out.
  */
-export default function UpgradeLayout({ children, exitTo = "/dashboard" }) {
+export default function UpgradeLayout({ children, maxWidth = 1180, exitTo = "/dashboard" }) {
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: brandColors.bg }}>
       <Stack
@@ -58,7 +58,7 @@ export default function UpgradeLayout({ children, exitTo = "/dashboard" }) {
         </Tooltip>
       </Stack>
 
-      <Box sx={{ px: { xs: 2, md: 3 }, pb: 8 }}>{children}</Box>
+      <Box sx={{ maxWidth, mx: "auto", px: { xs: 2, md: 3 }, pb: 8 }}>{children}</Box>
     </Box>
   );
 }

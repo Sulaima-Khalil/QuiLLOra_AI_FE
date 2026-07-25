@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, ArrowRight, Mail, Lock, Github, Check } from "lucide-react";
-import { loginUser, DEMO_CREDENTIALS, hasDemoCredentials, getAuthProviders, startOAuth } from "../utils/auth";
+import { loginUser, getAuthProviders, startOAuth } from "../utils/auth";
 import AuthShowcase, { GoogleIcon } from "../components/auth/AuthShowcase";
 import QuilloraMark from "../components/brand/QuilloraMark";
 import "../components/auth/auth.css";
 
 export default function Login() {
-  const [formData, setFormData] = useState({ email: DEMO_CREDENTIALS.email, password: DEMO_CREDENTIALS.password });
+  const [formData, setFormData] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -50,12 +50,6 @@ export default function Login() {
 
           <form className="auth-form" onSubmit={handleSubmit} noValidate>
             {error && <div className="auth-alert error" role="alert">{error}</div>}
-
-            {hasDemoCredentials && (
-              <div className="auth-note">
-                Demo access: <b>{DEMO_CREDENTIALS.email}</b> / <b>{DEMO_CREDENTIALS.password}</b>
-              </div>
-            )}
 
             <div className="field">
               <label className="field-label" htmlFor="email">Professional Email</label>

@@ -43,7 +43,7 @@ import {
   deleteAccount,
   getInitials,
 } from "../utils/profileStore";
-import { logoutUser } from "../utils/auth";
+import { logoutUser, listSessions } from "../utils/auth";
 import { getTeam, getRoles, subscribeTeam, refreshTeam, inviteMember, updateMemberRole, removeMember as removeTeamMember } from "../utils/teamStore";
 import { getSubscription, subscribeSubscription, planById, priceFor, formatDate } from "../utils/planStore";
 
@@ -58,18 +58,49 @@ const DEFAULT_SETTINGS = {
 
 const tones = ["Academic", "Minimalist", "Persuasive", "Technical"];
 
-const sessions = [
-  {
-    device: "MacBook Pro - San Francisco, CA",
-    meta: "Current Session • Chrome",
-    current: true,
-  },
-  {
-    device: "iPhone 15 Pro - San Francisco, CA",
-    meta: "2 hours ago • QuiLLora App",
-    current: false,
-  },
-];
+/** "Mozilla/5.0 (Macintosh…) Chrome/… Safari/…" -> "Chrome on macOS". */
+const describeDevice = (userAgent = "") => {
+  const browser =
+    /Edg\//.test(userAgent) ? "Edge"
+    : /OPR\//.test(userAgent) ? "Opera"
+    : /Chrome\//.test(userAgent) ? "Chrome"
+    : /Safari\//.test(userAgent) ? "Safari"
+    : /Firefox\//.test(userAgent) ? "Firefox"
+    : "Unknown browser";
+
+  const platform =
+    /Windows/.test(userAgent) ? "Windows"
+    : /Macintosh|Mac OS/.test(userAgent) ? "macOS"
+    : /iPhone|iPad/.test(userAgent) ? "iOS"
+    : /Android/.test(userAgent) ? "Android"
+    : /Linux/.test(userAgent) ? "Linux"
+    : "";
+
+  return platform ? `${browser} on ${platform}` : browser;
+};
+
+/** Coarse "how long ago" label — enough for a session list. */
+const timeAgo = (value) => {
+  const seconds = Math.floor((Date.now() - new Date(value).getTime()) / 1000);
+  if (seconds < 60) return "Just now";
+
+  const units = [
+    ["minute", 60],
+    ["hour", 60],
+    ["day", 24],
+    ["month", 30],
+  ];
+
+  let amount = Math.floor(seconds / 60);
+  let unit = "minute";
+
+  for (let i = 0; i < units.length - 1 && amount >= units[i + 1][1]; i += 1) {
+    amount = Math.floor(amount / units[i + 1][1]);
+    unit = units[i + 1][0];
+  }
+
+  return `${amount} ${unit}${amount === 1 ? "" : "s"} ago`;
+};
 
 const billingHistory = [
   { date: "Dec 15, 2024", amount: "$499.00" },
@@ -144,6 +175,8 @@ export const Setting = () => {
   const [analyticsReports, setAnalyticsReports] = useState(savedSettings.analyticsReports);
   const [team, setTeam] = useState(getTeam);
   const [subscription, setSubscription] = useState(getSubscription);
+  const [sessions, setSessions] = useState([]);
+  const [sessionsLoading, setSessionsLoading] = useState(true);
   const [memberMenu, setMemberMenu] = useState({ anchor: null, member: null });
   const [saved, setSaved] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
@@ -154,6 +187,25 @@ export const Setting = () => {
   const [saveError, setSaveError] = useState("");
 
   useEffect(() => subscribeSubscription(setSubscription), []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    listSessions()
+      .then((rows) => {
+        if (!cancelled) setSessions(rows);
+      })
+      .catch(() => {
+        if (!cancelled) setSessions([]);
+      })
+      .finally(() => {
+        if (!cancelled) setSessionsLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     const unsubscribeTeam = subscribeTeam(setTeam);
@@ -363,9 +415,21 @@ export const Setting = () => {
           Active Sessions
         </Typography>
         <Stack spacing={1} sx={{ mt: 1 }}>
+          {sessionsLoading && (
+            <Typography variant="caption" sx={{ color: "text.secondary" }}>
+              Loading sessions…
+            </Typography>
+          )}
+
+          {!sessionsLoading && sessions.length === 0 && (
+            <Typography variant="caption" sx={{ color: "text.secondary" }}>
+              No other active sessions.
+            </Typography>
+          )}
+
           {sessions.map((s) => (
             <Stack
-              key={s.device}
+              key={s.id}
               direction="row"
               sx={{
                 alignItems: "center",
@@ -375,22 +439,19 @@ export const Setting = () => {
               }}>
               <Box sx={{ flex: 1 }}>
                 <Typography variant="body2" sx={{ fontWeight: 600, color: "text.primary", fontSize: 13 }}>
-                  {s.device}
+                  {describeDevice(s.userAgent)}
                 </Typography>
                 <Typography variant="caption" sx={{ color: "text.secondary" }}>
-                  {s.meta}
+                  {s.current ? "Current session" : `Signed in ${timeAgo(s.createdAt)}`}
+                  {s.ipAddress ? ` • ${s.ipAddress}` : ""}
                 </Typography>
               </Box>
-              {s.current ? (
+              {s.current && (
                 <Chip
                   label="Active"
                   size="small"
                   sx={{ bgcolor: "#DFF7EE", color: brandColors.primary, fontWeight: 700, fontSize: 11 }}
                 />
-              ) : (
-                <Typography component="a" sx={{ ...linkSx, color: "error.main" }}>
-                  Revoke
-                </Typography>
               )}
             </Stack>
           ))}

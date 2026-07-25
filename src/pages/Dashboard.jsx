@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   Box,
@@ -21,10 +22,9 @@ import {
 } from "lucide-react";
 import { brandColors } from "../theme/muiTheme";
 import Analytics from "../components/dashboard/Analytics";
+import { getArticles, subscribeArticles, refreshArticles, areArticlesLoaded } from "../utils/articlesStore";
+import { formatCount, timeAgo } from "../utils/metrics";
 import ai2 from "@/assets/ai2.png";
-import ai1 from "@/assets/ai1.png";
-import rain1 from "@/assets/rain1.png";
-import design1 from "@/assets/design1.png";
 
 const quickActions = [
   { icon: FilePlus, label: "New Article", to: "/dashboard/write" },
@@ -33,41 +33,19 @@ const quickActions = [
   { icon: UserPlus, label: "Invite Team", to: "#" },
 ];
 
-const recentArticles = [
-  {
-    image: ai1,
-    title: "The Future of AI in Content Creation",
-    meta: "2h ago · 6 min read",
-    category: "AI & Tech",
-    status: "Published",
-    chip: { bgcolor: "#DFF7EE", color: brandColors.primary },
-    views: "12.4K",
-    likes: "512",
-    seo: 92,
-  },
-  {
-    image: rain1,
-    title: "10 Productivity Habits That Changed My Life",
-    meta: "5h ago · 5 min read",
-    category: "Lifestyle",
-    status: "Draft",
-    chip: { bgcolor: "#EEF1F0", color: brandColors.text },
-    views: "8.7K",
-    likes: "342",
-    seo: 76,
-  },
-  {
-    image: design1,
-    title: "Design Systems for Editorial Teams",
-    meta: "1d ago · 8 min read",
-    category: "Design",
-    status: "Published",
-    chip: { bgcolor: "#DFF7EE", color: brandColors.primary },
-    views: "15.2K",
-    likes: "689",
-    seo: 88,
-  },
-];
+/** Status pill colours, keyed by the status strings the API returns. */
+const STATUS_CHIP = {
+  Published: { bgcolor: "#DFF7EE", color: brandColors.primary },
+  Draft: { bgcolor: "#EEF1F0", color: brandColors.text },
+  Scheduled: { bgcolor: "#FDF2DC", color: brandColors.accentGold },
+  Archived: { bgcolor: "#EEF1F0", color: brandColors.outline },
+};
+
+/** Words per minute used to turn a word count into a read-time label. */
+const WPM = 200;
+
+/** A day's writing target, used by the hero progress ring. */
+const DAILY_WORD_GOAL = 1750;
 
 const activity = [
   {
@@ -114,6 +92,37 @@ const cardSx = {
 const seoColor = (score) => (score >= 85 ? brandColors.primary : score >= 70 ? brandColors.accentGold : "#C25B4A");
 
 export default function Dashboard() {
+  const [articles, setArticles] = useState(getArticles);
+  const [loading, setLoading] = useState(!areArticlesLoaded());
+
+  useEffect(() => {
+    const unsubscribe = subscribeArticles(setArticles);
+    refreshArticles().finally(() => setLoading(false));
+    return unsubscribe;
+  }, []);
+
+  // Newest three, whatever their status — this is a "what did I touch last"
+  // list rather than a published feed.
+  const recentArticles = useMemo(
+    () =>
+      [...articles]
+        .sort((a, b) => new Date(b.updatedAt ?? b.createdAt ?? 0) - new Date(a.updatedAt ?? a.createdAt ?? 0))
+        .slice(0, 3),
+    [articles],
+  );
+
+  // Words written today, for the hero ring.
+  const wordsToday = useMemo(() => {
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+
+    return articles
+      .filter((a) => new Date(a.updatedAt ?? a.createdAt ?? 0) >= startOfDay)
+      .reduce((total, a) => total + (a.words ?? a.wordCount ?? 0), 0);
+  }, [articles]);
+
+  const goalPercent = Math.min(100, Math.round((wordsToday / DAILY_WORD_GOAL) * 100));
+
   return (
     <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", lg: "2fr 1fr" }, gap: 2.5, alignItems: "start" }}>
       {/* Hero banner */}
@@ -201,14 +210,14 @@ export default function Dashboard() {
               />
               <CircularProgress
                 variant="determinate"
-                value={72}
+                value={goalPercent}
                 size={62}
                 thickness={4}
                 sx={{ position: "absolute", left: 0, color: brandColors.mint, "& .MuiCircularProgress-circle": { strokeLinecap: "round" } }}
               />
               <Box sx={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <Typography variant="caption" sx={{ fontWeight: 800, color: "#fff" }}>
-                  72%
+                  {goalPercent}%
                 </Typography>
               </Box>
             </Box>
@@ -217,7 +226,8 @@ export default function Dashboard() {
                 DAILY GOAL PROGRESS
               </Typography>
               <Typography variant="body1" sx={{ fontWeight: 800, color: "#fff" }}>
-                1,245 / 1,750 <Box component="span" sx={{ fontWeight: 500, fontSize: 12, color: "rgba(255,255,255,0.6)" }}>words</Box>
+                {wordsToday.toLocaleString("en-US")} / {DAILY_WORD_GOAL.toLocaleString("en-US")}{" "}
+                <Box component="span" sx={{ fontWeight: 500, fontSize: 12, color: "rgba(255,255,255,0.6)" }}>words</Box>
               </Typography>
             </Box>
           </Stack>
@@ -306,9 +316,37 @@ export default function Dashboard() {
             ))}
           </Box>
 
-          {recentArticles.map(({ image, title, meta, category, status, chip, views, likes, seo }, i) => (
+          {loading && recentArticles.length === 0 && (
+            <Typography variant="body2" sx={{ py: 3, color: "text.secondary" }}>
+              Loading your articles…
+            </Typography>
+          )}
+
+          {!loading && recentArticles.length === 0 && (
+            <Stack spacing={1.5} sx={{ py: 4, alignItems: "flex-start" }}>
+              <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                You haven't written anything yet.
+              </Typography>
+              <Button component={Link} to="/dashboard/write" variant="contained" size="small" startIcon={<PenSquare size={15} />}>
+                Write your first article
+              </Button>
+            </Stack>
+          )}
+
+          {recentArticles.map((article, i) => {
+            const { id, img: image, title, category, status, views, likes, seo } = article;
+            const words = article.words ?? article.wordCount ?? 0;
+            const chip = STATUS_CHIP[status] ?? STATUS_CHIP.Draft;
+            const meta = [
+              timeAgo(article.updatedAt ?? article.createdAt),
+              words ? `${Math.max(1, Math.round(words / WPM))} min read` : null,
+            ]
+              .filter(Boolean)
+              .join(" · ");
+
+            return (
             <Box
-              key={title}
+              key={id ?? title}
               sx={{
                 display: "grid",
                 gridTemplateColumns: "3fr 1fr 1fr 0.8fr 0.7fr 0.6fr 40px",
@@ -333,7 +371,12 @@ export default function Dashboard() {
                   sx={{ width: 44, height: 44, flexShrink: 0, borderRadius: 1.5, objectFit: "cover" }}
                 />
                 <Box sx={{ minWidth: 0 }}>
-                  <Typography variant="body2" sx={{ fontWeight: 700, color: "text.primary", lineHeight: 1.35 }}>
+                  <Typography
+                    component={Link}
+                    to={`/dashboard/write?id=${id}`}
+                    variant="body2"
+                    sx={{ fontWeight: 700, color: "text.primary", lineHeight: 1.35, textDecoration: "none", "&:hover": { color: "primary.main" } }}
+                  >
                     {title}
                   </Typography>
                   <Typography variant="caption" sx={{ color: "text.secondary" }}>
@@ -348,10 +391,10 @@ export default function Dashboard() {
                 <Chip label={status} size="small" sx={{ height: 20, fontSize: 10, fontWeight: 700, ...chip }} />
               </Box>
               <Typography variant="body2" sx={{ fontWeight: 700, color: "text.primary" }}>
-                {views}
+                {formatCount(views ?? 0)}
               </Typography>
               <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                {likes}
+                {formatCount(likes ?? 0)}
               </Typography>
               <Box
                 sx={{
@@ -361,18 +404,19 @@ export default function Dashboard() {
                   alignItems: "center",
                   justifyContent: "center",
                   borderRadius: "50%",
-                  border: `2px solid ${seoColor(seo)}`,
+                  border: `2px solid ${seoColor(seo ?? 0)}`,
                 }}
               >
-                <Typography variant="caption" sx={{ fontSize: 9, fontWeight: 800, color: seoColor(seo) }}>
-                  {seo}
+                <Typography variant="caption" sx={{ fontSize: 9, fontWeight: 800, color: seoColor(seo ?? 0) }}>
+                  {seo ?? 0}
                 </Typography>
               </Box>
-              <IconButton size="small">
+              <IconButton size="small" component={Link} to={`/dashboard/write?id=${id}`}>
                 <MoreVertical size={15} />
               </IconButton>
             </Box>
-          ))}
+            );
+          })}
         </Box>
       </Box>
       {/* Recent activity */}

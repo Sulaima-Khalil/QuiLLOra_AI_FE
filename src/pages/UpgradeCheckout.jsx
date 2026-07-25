@@ -145,8 +145,7 @@ export default function UpgradeCheckout() {
   const fieldSx = { "& .MuiOutlinedInput-root": { bgcolor: brandColors.bgSecondary } };
 
   return (
-    <UpgradeLayout>
-      <Box sx={{ maxWidth: 980, mx: "auto" }}>
+    <UpgradeLayout maxWidth={980}>
       <Button
         component={Link}
         to="/dashboard/upgrade"
@@ -378,6 +377,6 @@ export default function UpgradeCheckout() {
           </Typography>
         </Box>
       </Box>
-    </Box>
+    </UpgradeLayout>
   );
 }

@@ -208,8 +208,7 @@ export default function Upgrade() {
   };
 
   return (
-    <UpgradeLayout>
-      <Box sx={{ maxWidth: 1180, mx: "auto" }}>
+    <UpgradeLayout maxWidth={1180}>
       {/* Heading */}
       <Box sx={{ textAlign: "center", maxWidth: 620, mx: "auto" }}>
         <Typography
@@ -397,7 +396,6 @@ export default function Upgrade() {
             </AccordionDetails>
           </Accordion>
         ))}
-      </Box>
       </Box>
     </UpgradeLayout>
   );

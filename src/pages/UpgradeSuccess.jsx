@@ -3,6 +3,7 @@ import { Link, Navigate } from "react-router-dom";
 import { Box, Typography, Stack, Button, Chip, Divider } from "@mui/material";
 import { Check, Sparkles, BarChart3, Users, Download } from "lucide-react";
 import { brandColors } from "@/theme/muiTheme";
+import UpgradeLayout from "@/components/upgrade/UpgradeLayout";
 import { getSubscription, planById, priceFor, chargeFor, formatDate } from "@/utils/planStore";
 
 const NEXT_STEPS = [
@@ -48,7 +49,7 @@ export default function UpgradeSuccess() {
   const charge = chargeFor(plan, cycle);
 
   return (
-    <Box sx={{ maxWidth: 860, mx: "auto" }}>
+    <UpgradeLayout maxWidth={860}>
       {/* Confirmation */}
       <Box sx={{ textAlign: "center", pt: { xs: 2, md: 5 } }}>
         <Box
@@ -224,6 +225,6 @@ export default function UpgradeSuccess() {
           </Box>
         ))}
       </Box>
-    </Box>
+    </UpgradeLayout>
   );
 }
