@@ -3,8 +3,11 @@ import { Box, Container, Typography, TextField, Button, Stack } from "@mui/mater
 import { Send, Mail, MessageCircle, Clock, CheckCircle2 } from "lucide-react";
 import { brandColors } from "@/theme/muiTheme";
 
+/** The address this section already publishes; the form hands off to it. */
+const CONTACT_EMAIL = "hello@quillora.ai";
+
 const methods = [
-  { icon: Mail, label: "Email us", value: "hello@quillora.ai" },
+  { icon: Mail, label: "Email us", value: CONTACT_EMAIL },
   { icon: MessageCircle, label: "Live chat", value: "Mon–Fri, 9–6" },
   { icon: Clock, label: "Response", value: "Within 24 hours" },
 ];
@@ -24,7 +27,30 @@ const fieldSx = {
 };
 
 export default function ContactUs() {
-  const [sent, setSent] = useState(false);
+  const [handedOff, setHandedOff] = useState(false);
+  const [form, setForm] = useState({ name: "", email: "", message: "" });
+
+  /*
+   * This used to be `onSubmit={(e) => { e.preventDefault(); setSent(true); }}`
+   * — a "Message sent!" panel for a message that was never transmitted. There
+   * is no contact or lead-capture endpoint, so the form composes an email to
+   * the address printed directly beneath it instead of faking a delivery.
+   */
+  const handleSubmit = (event) => {
+    event.preventDefault();
+
+    const { name, email, message } = form;
+    if (!name.trim() || !email.trim() || !message.trim()) return;
+
+    const body = `${message.trim()}\n\n—\n${name.trim()} (${email.trim()})`;
+    window.location.href = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(
+      `Website enquiry from ${name.trim()}`,
+    )}&body=${encodeURIComponent(body)}`;
+
+    setHandedOff(true);
+  };
+
+  const setField = (key) => (event) => setForm((prev) => ({ ...prev, [key]: event.target.value }));
 
   return (
     <Box component="section">
@@ -75,28 +101,28 @@ export default function ContactUs() {
             </Typography>
           </Box>
 
-          {sent ? (
+          {handedOff ? (
             <Stack spacing={1.5} sx={{ alignItems: "center", py: 4, position: "relative", zIndex: 1 }}>
               <CheckCircle2 size={40} color={brandColors.secondary} />
               <Typography variant="subtitle1" sx={{ fontWeight: 700, color: "text.primary" }}>
-                Message sent!
+                Your email client should be open
               </Typography>
               <Typography variant="body2" sx={{ color: "text.secondary", textAlign: "center" }}>
-                Thanks for reaching out — we&rsquo;ll reply within 24 hours.
+                Send the draft to reach us. If nothing opened, write to {CONTACT_EMAIL}.
               </Typography>
-              <Button onClick={() => setSent(false)} sx={{ color: "primary.main" }}>
-                Send another
+              <Button onClick={() => setHandedOff(false)} sx={{ color: "primary.main" }}>
+                Back to the form
               </Button>
             </Stack>
           ) : (
             <Box
               component="form"
-              onSubmit={(e) => { e.preventDefault(); setSent(true); }}
+              onSubmit={handleSubmit}
               sx={{ mt: 4, position: "relative", zIndex: 1 }}
             >
               <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-                <TextField label="Your name" required fullWidth size="small" sx={fieldSx} />
-                <TextField label="Email address" type="email" required fullWidth size="small" sx={fieldSx} />
+                <TextField label="Your name" required fullWidth size="small" sx={fieldSx} value={form.name} onChange={setField("name")} />
+                <TextField label="Email address" type="email" required fullWidth size="small" sx={fieldSx} value={form.email} onChange={setField("email")} />
               </Stack>
               <TextField
                 label="Message"
@@ -106,6 +132,8 @@ export default function ContactUs() {
                 minRows={4}
                 size="small"
                 sx={{ ...fieldSx, mt: 2 }}
+                value={form.message}
+                onChange={setField("message")}
               />
               <Button
                 type="submit"
@@ -114,8 +142,11 @@ export default function ContactUs() {
                 endIcon={<Send size={16} />}
                 sx={{ mt: 2.5, py: 1.15, bgcolor: brandColors.primary, "&:hover": { bgcolor: brandColors.primaryDark } }}
               >
-                Send Message
+                Compose Email
               </Button>
+              <Typography variant="caption" sx={{ display: "block", mt: 1.25, textAlign: "center", color: "text.secondary" }}>
+                Opens your email client addressed to {CONTACT_EMAIL}.
+              </Typography>
             </Box>
           )}
 

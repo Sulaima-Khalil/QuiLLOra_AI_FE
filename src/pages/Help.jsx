@@ -23,6 +23,9 @@ import {
 import { brandColors } from "../theme/muiTheme";
 import { FilterInput } from "../components/shared/FilterInput";
 
+/** The address already published on this page; the form hands off to it. */
+const SUPPORT_EMAIL = "support@quillora.ai";
+
 const quickLinks = [
   { icon: BookOpen, label: "Documentation", description: "Guides & API reference" },
   { icon: MessageCircle, label: "Community Forum", description: "Ask other writers" },
@@ -60,10 +63,26 @@ export default function Help() {
 
   const filteredFaqs = faqs.filter((f) => `${f.q} ${f.a}`.toLowerCase().includes(query.toLowerCase()));
 
+  /*
+   * There is no support or ticketing API — no route, controller or service
+   * accepts one. This used to clear the form and announce "Message sent. Our
+   * team will get back to you within 24 hours", which was a fabricated success
+   * for a message that went nowhere.
+   *
+   * The form now hands off to the support address the page already shows, via
+   * the user's mail client. That genuinely delivers the message, and the sent
+   * state is the mail client's rather than something invented here.
+   */
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!form.subject.trim() || !form.message.trim()) return;
-    setForm({ subject: "", message: "" });
+
+    const subject = form.subject.trim();
+    const message = form.message.trim();
+    if (!subject || !message) return;
+
+    const mailto = `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}`;
+    window.location.href = mailto;
+
     setToast(true);
   };
 
@@ -165,7 +184,7 @@ export default function Help() {
               color: "text.secondary"
             }}>
             <Mail size={14} />
-            <Typography variant="caption">support@quillora.ai</Typography>
+            <Typography variant="caption">{SUPPORT_EMAIL}</Typography>
           </Stack>
           <Stack
             direction="row"
@@ -199,17 +218,22 @@ export default function Help() {
               <Button
                 type="submit"
                 variant="contained"
+                disabled={!form.subject.trim() || !form.message.trim()}
                 sx={{ bgcolor: brandColors.dark, "&:hover": { bgcolor: brandColors.primaryDark } }}
               >
-                Send Message
+                Compose Email
               </Button>
+              <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                In-app ticketing isn&apos;t available yet — this opens your email client
+                addressed to {SUPPORT_EMAIL}.
+              </Typography>
             </Stack>
           </Box>
         </Stack>
       </Box>
-      <Snackbar open={toast} autoHideDuration={3500} onClose={() => setToast(false)} anchorOrigin={{ vertical: "bottom", horizontal: "center" }}>
-        <Alert severity="success" variant="filled" onClose={() => setToast(false)} sx={{ borderRadius: 2 }}>
-          Message sent. Our team will get back to you within 24 hours.
+      <Snackbar open={toast} autoHideDuration={4000} onClose={() => setToast(false)} anchorOrigin={{ vertical: "bottom", horizontal: "center" }}>
+        <Alert role="status" severity="info" variant="filled" onClose={() => setToast(false)} sx={{ borderRadius: 2 }}>
+          Opening your email client. If nothing happens, write to {SUPPORT_EMAIL}.
         </Alert>
       </Snackbar>
     </Stack>

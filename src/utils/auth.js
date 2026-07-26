@@ -1,5 +1,6 @@
 import api, { clearSessionFlag, errorMessage, hasSessionFlag, setSessionFlag, unwrap } from "./apiClient";
 import { setProfile, clearProfile } from "./profileStore";
+import { resetSubscription } from "./planStore";
 
 /**
  * Authentication against the QuiLLora AI backend.
@@ -9,12 +10,22 @@ import { setProfile, clearProfile } from "./profileStore";
  * pages read `err.response.data.message`, which the backend already provides.
  */
 
-/** Normalises an axios failure into the `{ response: { data: { message } } }`
- *  shape the auth pages already destructure. */
-const toFormError = (error, fallback) => {
-  if (error?.response?.data?.message) return error;
-  return { response: { data: { message: errorMessage(error, fallback) } } };
-};
+/**
+ * Normalises an axios failure into the `{ response: { data: { message } } }`
+ * shape the auth pages already destructure.
+ *
+ * This used to return the original error whenever the server had sent any
+ * message at all, which handed the auth forms whatever a 5xx contained. When
+ * the database was unreachable the sign-in screen rendered the raw OpenSSL
+ * handshake error, server file paths and all. `errorMessage` now decides what
+ * is safe to repeat; the status is preserved for callers that branch on it.
+ */
+const toFormError = (error, fallback) => ({
+  response: {
+    status: error?.response?.status,
+    data: { message: errorMessage(error, fallback) },
+  },
+});
 
 // Register
 export const registerUser = async ({ name, email, password, username, country, newsletter }) => {
@@ -64,6 +75,8 @@ export const logoutUser = async () => {
   } finally {
     clearSessionFlag();
     clearProfile();
+    // No plan may survive into the next session on this device.
+    resetSubscription();
   }
 };
 
@@ -88,6 +101,8 @@ export const restoreSession = async () => {
   } catch {
     clearSessionFlag();
     clearProfile();
+    // No plan may survive into the next session on this device.
+    resetSubscription();
     return null;
   }
 };

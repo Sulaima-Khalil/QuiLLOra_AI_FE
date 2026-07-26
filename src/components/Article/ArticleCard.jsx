@@ -50,6 +50,13 @@ export const ArticleCards = ({ activetab, query = "" }) => {
           <Card
             key={item.id}
             {...item}
+            // Reading is the public page; editing stays on the explicit action.
+            // A draft has no public page yet, so its card opens the editor.
+            onRead={() =>
+              navigate(
+                item.status === "Published" ? `/article/${item.id}` : `/dashboard/write?edit=${item.id}`,
+              )
+            }
             onEdit={() => navigate(`/dashboard/write?edit=${item.id}`)}
             onArchive={() => (item.status === "Archived" ? handleRestore(item.id) : handleArchive(item.id))}
             onDelete={() => setPendingDelete(item.id)}

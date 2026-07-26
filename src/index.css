@@ -51,9 +51,67 @@ p {
   color: #FFFFFF;
 }
 
+/*
+ * Keyboard focus ring.
+ *
+ * Uses the bright teal rather than the deep one: --color-primary is 5.5:1 on
+ * the app background, --color-secondary is 10:1, and a focus ring you have to
+ * hunt for is not much better than none. The dark companion ring sits in the
+ * 2px offset gap so the same style also reads against the white editor canvas,
+ * where teal alone is under 2:1.
+ *
+ * MUI's ButtonBase sets `outline: 0` on its own root, so this rule does not
+ * reach Buttons, IconButtons, MenuItems or Tabs. Those are handled on
+ * `.Mui-focusVisible` in theme/muiTheme.js — the two must stay in step.
+ */
 :focus-visible {
-  outline: 2px solid var(--color-primary);
+  outline: 2px solid var(--color-secondary);
   outline-offset: 2px;
+  box-shadow: 0 0 0 2px rgba(11, 18, 32, 0.9);
+}
+
+/*
+ * Skip to main content.
+ *
+ * Off-screen rather than `display: none` so it stays in the tab order, and it
+ * is the first focusable thing in the document — the whole point is to skip
+ * the sidebar and topbar without tabbing through every navigation item.
+ */
+.skip-link {
+  position: absolute;
+  left: 12px;
+  top: -100px;
+  z-index: 2000;
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  background: var(--color-secondary);
+  color: #06231f;
+  font-family: var(--font-button);
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: top 0.15s ease;
+}
+
+.skip-link:focus-visible {
+  top: 12px;
+}
+
+/*
+ * A visible target that screen readers ignore is fine; the reverse is not.
+ * Used for text that only exists to give a control or region a name.
+ */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
 }
 
 ::-webkit-scrollbar {
@@ -90,4 +148,30 @@ p {
 
 .animate-slide-up {
   animation: slideUp 0.5s ease both;
+}
+
+/*
+ * Reduced motion.
+ *
+ * Entrance animations are decoration — content arriving is already obvious
+ * from the content. The near-zero duration rather than `none` keeps
+ * animationend firing, which MUI's transition components rely on to unmount.
+ * The skip link keeps its own transition budget for the same reason; it is
+ * a 150ms slide, well inside what "reduce" tolerates, and removing it makes
+ * the link appear to teleport.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .animate-fade-in,
+  .animate-slide-up {
+    animation: none;
+  }
 }

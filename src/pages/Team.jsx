@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -44,6 +45,7 @@ import { brandColors } from "../theme/muiTheme";
 import { getInitials } from "../utils/profileStore";
 import { FilterInput } from "../components/shared/FilterInput";
 import { ConfirmDialog } from "../components/shared/ConfirmDialog";
+import { capability, fetchEntitlements, subscribeEntitlements } from "../utils/entitlementsStore";
 import {
   getArticles,
   refreshArticles,
@@ -59,6 +61,7 @@ import {
   removeMember,
   subscribeTeam,
 } from "../utils/teamStore";
+import { scrollIntoViewGently } from "../utils/motion";
 
 const ANY = "All";
 
@@ -177,6 +180,7 @@ export default function Team() {
   const [inviteRoleAnchor, setInviteRoleAnchor] = useState(null);
   const [inviting, setInviting] = useState(false);
   const [inviteError, setInviteError] = useState("");
+  const [seats, setSeats] = useState(() => capability("teamMembers"));
 
   const [notice, setNotice] = useState(null);
 
@@ -200,14 +204,20 @@ export default function Team() {
     const unsubscribeTeam = subscribeTeam(setTeam);
     const unsubscribeArticles = subscribeArticles(setArticles);
 
+    // Seat headroom, so a full workspace is explained before an invite is
+    // attempted. Advisory only — the server enforces the seat count.
+    const unsubscribeSeats = subscribeEntitlements(() => setSeats(capability("teamMembers")));
+
     load();
     // Powers the "published this month" card; a failure there must not break
     // the page, so the rejection is swallowed deliberately.
     refreshArticles().catch(() => {});
+    fetchEntitlements().then(() => setSeats(capability("teamMembers")));
 
     return () => {
       unsubscribeTeam();
       unsubscribeArticles();
+      unsubscribeSeats();
     };
   }, [load]);
 
@@ -462,7 +472,7 @@ export default function Team() {
           </Typography>
           <Button
             endIcon={<ArrowRight size={15} />}
-            onClick={() => permissionsRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })}
+            onClick={() => scrollIntoViewGently(permissionsRef.current, { block: "center" })}
             sx={{ alignSelf: "flex-start", p: 0, color: brandColors.mint, fontWeight: 700, "&:hover": { bgcolor: "transparent", opacity: 0.85 } }}
           >
             Configure Permissions
@@ -583,7 +593,18 @@ export default function Team() {
                         {member.email}
                       </Typography>
                     </Box>
-                    <Tooltip title={member.joined ? `Joined ${member.joined}` : ""}>
+                    {/*
+                      `describeChild` matters here. By default MUI applies the
+                      tooltip title as the child's `aria-label`, which would
+                      have replaced the role chip's own text with the join date
+                      — and replaced it with an empty string for a member who
+                      has no join date, leaving the chip nameless. As a
+                      description it is additive instead.
+                    */}
+                    <Tooltip
+                      describeChild
+                      title={member.joined ? `Joined ${member.joined}` : ""}
+                    >
                       <Chip
                         label={member.role}
                         size="small"
@@ -609,9 +630,11 @@ export default function Team() {
                       <IconButton
                         size="small"
                         onClick={(e) => setMenu({ anchor: e.currentTarget, member })}
+                        aria-label={`More actions for ${member.name}`}
+                        aria-haspopup="menu"
                         sx={{ color: "text.secondary" }}
                       >
-                        <MoreVertical size={16} />
+                        <MoreVertical size={16} aria-hidden="true" />
                       </IconButton>
                     )}
                   </Stack>
@@ -621,8 +644,21 @@ export default function Team() {
             {filtered.length > PREVIEW_COUNT && (
               <Box sx={{ textAlign: "center", pt: 1.5 }}>
                 <Typography
+                  component="button"
+                  type="button"
                   onClick={() => setShowAll((prev) => !prev)}
-                  sx={{ fontSize: 13, fontWeight: 700, color: brandColors.primary, cursor: "pointer", "&:hover": { textDecoration: "underline" } }}
+                  aria-expanded={showAll}
+                  sx={{
+                    fontSize: 13,
+                    fontWeight: 700,
+                    color: brandColors.primary,
+                    cursor: "pointer",
+                    font: "inherit",
+                    border: 0,
+                    background: "none",
+                    padding: 0,
+                    "&:hover": { textDecoration: "underline" },
+                  }}
                 >
                   {showAll ? "Show fewer" : `View all ${filtered.length} members`}
                 </Typography>
@@ -815,12 +851,31 @@ export default function Team() {
         onClose={() => !inviting && setInviteOpen(false)}
         fullWidth
         maxWidth="xs"
+        aria-labelledby="team-invite-title"
       >
-        <DialogTitle sx={{ fontWeight: 700 }}>Invite Team Member</DialogTitle>
+        <DialogTitle id="team-invite-title" sx={{ fontWeight: 700 }}>Invite Team Member</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             {inviteError && (
               <Alert severity="error" sx={{ borderRadius: 2, fontSize: 13 }}>{inviteError}</Alert>
+            )}
+
+            {/* Explains a full workspace before the invite is attempted. The
+                server refuses it either way. */}
+            {seats?.reached && (
+              <Alert
+                severity="warning"
+                sx={{ borderRadius: 2, fontSize: 13 }}
+                action={
+                  <Button component={Link} to="/dashboard/upgrade" size="small" sx={{ fontWeight: 700 }}>
+                    Upgrade
+                  </Button>
+                }
+              >
+                {seats.limit === 1
+                  ? "Your plan is single-user. Upgrade to invite teammates."
+                  : `All ${seats.limit} seats on your plan are taken, including yours.`}
+              </Alert>
             )}
             <TextField
               autoFocus
@@ -915,6 +970,7 @@ export default function Team() {
       >
         {notice ? (
           <Alert
+            role={notice.severity === "error" ? "alert" : "status"}
             severity={notice.severity}
             variant="filled"
             onClose={() => setNotice(null)}

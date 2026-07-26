@@ -89,6 +89,20 @@ export const fetchArticleById = async (id) => {
   return withCover(data.article);
 };
 
+/**
+ * The same `GET /articles/:id` the editor uses, keeping the server's
+ * `isOwner` flag for the public reader.
+ *
+ * That route is optionally authenticated: the server 404s an unpublished or
+ * private article for everyone except its author, so publication status is
+ * enforced there. The reader re-checks the status it gets back, but as a
+ * display rule — the authorization is the server's.
+ */
+export const fetchPublicArticle = async (id) => {
+  const data = unwrap(await api.get(`/articles/${id}`));
+  return { article: withCover(data.article), isOwner: Boolean(data.isOwner) };
+};
+
 /* ---------------------------------------------------------------------------
  * Mutations
  * ------------------------------------------------------------------------ */

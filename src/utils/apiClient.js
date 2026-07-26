@@ -22,9 +22,44 @@ export const api = axios.create({
  */
 export const unwrap = (response) => response?.data?.data ?? null;
 
-/** Pulls a human-readable message out of any axios failure. */
-export const errorMessage = (error, fallback = "Something went wrong. Please try again.") =>
-  error?.response?.data?.message || error?.message || fallback;
+/**
+ * Pulls a human-readable message out of any axios failure.
+ *
+ * Only 4xx messages are repeated to the user. Those are written for the person
+ * reading them ("Invalid email or password."); a 5xx message is an internal —
+ * a driver failure, a stack, a file path from the server's build machine — and
+ * the backend only discloses it at all because it is running outside
+ * production. A TLS handshake failure once reached the login form as
+ * "error:0A000438:SSL routines:ssl3_read_bytes:tlsv1 alert internal error…".
+ *
+ * Axios's own `error.message` is skipped for the same reason: "Network Error"
+ * and "timeout of 20000ms exceeded" are diagnostics, not sentences.
+ */
+export const errorMessage = (error, fallback = "Something went wrong. Please try again.") => {
+  const status = error?.response?.status;
+  const serverMessage = error?.response?.data?.message;
+
+  if (status >= 400 && status < 500 && serverMessage) return serverMessage;
+
+  // No response at all: the request never completed.
+  if (!error?.response) {
+    return error?.code === "ECONNABORTED"
+      ? "That took too long. Check your connection and try again."
+      : "Can't reach the server. Check your connection and try again.";
+  }
+
+  return fallback;
+};
+
+/**
+ * Whether a failure is the server refusing an action on plan grounds.
+ *
+ * The backend returns 403 with `code: "PLAN_LIMIT_REACHED"`. Matching on the
+ * code rather than the status keeps this distinct from an ownership refusal,
+ * which is also a 403 but means something entirely different.
+ */
+export const isPlanLimitError = (error) =>
+  error?.response?.status === 403 && error?.response?.data?.code === "PLAN_LIMIT_REACHED";
 
 /* ---------------------------------------------------------------------------
  * Transparent access-token refresh

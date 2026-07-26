@@ -1,0 +1,31 @@
+# QuiLLora AI
+#
+# Public surface: the landing page, published articles (/article/:id) and
+# public author pages (/author/:identifier).
+#
+# Everything below is disallowed because it is either private, per-user, or a
+# credential flow. None of it should ever appear in a search result.
+
+User-agent: *
+
+# Authenticated application. Every route under it requires a session.
+Disallow: /dashboard/
+
+# Credential and account-recovery flows.
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /verify-reset-code
+Disallow: /reset-password
+Disallow: /reset-success
+Disallow: /verify-email
+
+# Search result pages produce near-duplicate, low-value URLs.
+Disallow: /*?q=
+
+Allow: /
+
+# Emitted at build time only when VITE_SITE_URL is set — a sitemap needs
+# absolute URLs, and guessing the production domain would be worse than
+# shipping none. See docs/SEO.md.
+Sitemap: /sitemap.xml

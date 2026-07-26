@@ -130,6 +130,7 @@ export default function ResetPassword() {
                   disabled={!authorised}
                   autoFocus
                   required
+                  aria-describedby="pw-rules"
                 />
                 <button
                   type="button"
@@ -156,11 +157,20 @@ export default function ResetPassword() {
               )}
             </div>
 
-            <ul className="pw-rules">
+            {/*
+              Whether a rule is met was carried entirely by a CSS class — the
+              tick turning teal. Screen-reader users heard the same six lines
+              regardless, and so did anyone who cannot separate the teal from
+              the grey. The state is now words as well as colour, and the list
+              describes the password field so it is read on focus rather than
+              only stumbled into.
+            */}
+            <ul className="pw-rules" id="pw-rules">
               {rules.map((rule) => (
                 <li key={rule.label} className={rule.ok ? "ok" : ""}>
-                  <span className="tick"><Check size={11} strokeWidth={3.5} /></span>
+                  <span className="tick" aria-hidden="true"><Check size={11} strokeWidth={3.5} /></span>
                   {rule.label}
+                  <span className="visually-hidden">{rule.ok ? " — met" : " — not yet met"}</span>
                 </li>
               ))}
             </ul>

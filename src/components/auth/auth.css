@@ -17,7 +17,16 @@
   --card: #101a2c;
   --text: #e7ebf3;
   --body: #8b95a7;
-  --muted: #5b6478;
+  /*
+   * Raised from #5b6478, which measured 3.2:1 on the navy panels — under the
+   * 4.5:1 that body text needs, and this variable is the colour of the field
+   * labels, the "or continue with" divider, the legal line and its links, and
+   * the recovery step numbers. It is also used for the small field icons,
+   * where 3.2:1 was already passing; those simply get slightly brighter.
+   *
+   * #7d879b measures 4.7:1 on #0b1220 and 4.9:1 on the raised #101a2c.
+   */
+  --muted: #7d879b;
   --border: rgba(255, 255, 255, 0.08);
   --radius: 26px;
 
@@ -736,8 +745,13 @@
   color: var(--text);
 }
 
+/*
+ * These placeholders carry format hints ("name@organization.com"), so they
+ * have to be legible. Was #5b6478 at 3.2:1; the shared muted token is 4.7:1
+ * and still reads as a placeholder against the brighter --text value above it.
+ */
 .field input::placeholder {
-  color: #5b6478;
+  color: var(--muted);
 }
 
 .field input:focus,

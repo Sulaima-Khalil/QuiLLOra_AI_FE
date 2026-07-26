@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -146,8 +146,14 @@ const CollectionCard = ({ count, title, description, meta, active, onOpen, onMen
       <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "flex-start" }}>
         <Typography sx={{ fontSize: 16, fontWeight: 800, color: "text.primary" }}>{title}</Typography>
         {onMenu && (
-          <IconButton size="small" onClick={(e) => { e.stopPropagation(); onMenu(e); }} sx={{ mt: -0.5, mr: -0.5, color: "text.secondary" }}>
-            <MoreVertical size={16} />
+          <IconButton
+            size="small"
+            onClick={(e) => { e.stopPropagation(); onMenu(e); }}
+            aria-label={`More actions for ${title}`}
+            aria-haspopup="menu"
+            sx={{ mt: -0.5, mr: -0.5, color: "text.secondary" }}
+          >
+            <MoreVertical size={16} aria-hidden="true" />
           </IconButton>
         )}
       </Stack>
@@ -173,7 +179,12 @@ const CollectionCard = ({ count, title, description, meta, active, onOpen, onMen
         {meta.private ? (
           <Chip icon={<Lock size={11} />} label="PRIVATE" size="small" sx={{ height: 20, fontSize: 9, fontWeight: 700, bgcolor: brandColors.hover, color: brandColors.primaryDark, "& .MuiChip-icon": { color: brandColors.primaryDark, ml: 0.5 } }} />
         ) : meta.shared ? (
-          <IconButton size="small" sx={{ color: "text.secondary" }}><Share2 size={14} /></IconButton>
+          /* Status indicator, not a control — it has no handler, and a
+             focusable button that does nothing is a dead end for a keyboard
+             user. Rendered as the icon it always was. */
+          <Box sx={{ display: "inline-flex", p: 0.75, color: "text.secondary" }}>
+            <Share2 size={14} aria-label="Shared collection" role="img" />
+          </Box>
         ) : (
           <AvatarGroup max={3} sx={{ "& .MuiAvatar-root": { width: 22, height: 22, fontSize: 9, borderColor: "background.paper" } }}>
             {Array.from({ length: meta.collaborators }).map((_, i) => (
@@ -187,8 +198,12 @@ const CollectionCard = ({ count, title, description, meta, active, onOpen, onMen
 );
 
 export default function Collections() {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [state, setState] = useState(getState);
-  const [active, setActive] = useState(null); // null = grid view
+  // `?collection=<id>` opens one directly, which is what a search result links
+  // to. Without it the page still starts on the grid, exactly as before.
+  const [active, setActive] = useState(() => searchParams.get("collection"));
   const [newOpen, setNewOpen] = useState(false);
   const [newName, setNewName] = useState("");
   const [addToArticle, setAddToArticle] = useState(null);
@@ -331,6 +346,8 @@ export default function Collections() {
                 <ArticleCard
                   key={item.id}
                   {...item}
+                  // Saved articles come from Discover, so they are all published.
+                  onRead={() => navigate(`/article/${item.id}`)}
                   extraActions={
                     active === ALL_SAVED
                       ? [
@@ -371,7 +388,11 @@ export default function Collections() {
             />
           ))}
           {/* Add new dashed card */}
+          {/* A real <button>: this was a clickable Box, so the only way to
+              create a collection from this grid was with a mouse. */}
           <Box
+            component="button"
+            type="button"
             onClick={() => setNewOpen(true)}
             sx={{
               borderRadius: 3,
@@ -383,14 +404,17 @@ export default function Collections() {
               alignItems: "center",
               justifyContent: "center",
               gap: 1,
+              width: "100%",
+              font: "inherit",
+              bgcolor: "transparent",
               color: "text.secondary",
               cursor: "pointer",
               transition: "all 0.2s",
               "&:hover": { borderColor: brandColors.primary, color: brandColors.primary, bgcolor: brandColors.hover },
             }}
           >
-            <FolderPlus size={30} />
-            <Typography sx={{ fontSize: 13.5, fontWeight: 700 }}>Add New Collection</Typography>
+            <FolderPlus size={30} aria-hidden="true" />
+            <Typography component="span" sx={{ fontSize: 13.5, fontWeight: 700 }}>Add New Collection</Typography>
           </Box>
         </Box>
       )}
@@ -408,13 +432,22 @@ export default function Collections() {
       </Menu>
 
       {/* New collection dialog */}
-      <Dialog open={newOpen} onClose={() => setNewOpen(false)} fullWidth maxWidth="xs">
-        <DialogTitle sx={{ fontWeight: 700 }}>New Collection</DialogTitle>
+      <Dialog
+        open={newOpen}
+        onClose={() => setNewOpen(false)}
+        fullWidth
+        maxWidth="xs"
+        aria-labelledby="new-collection-title"
+      >
+        <DialogTitle id="new-collection-title" sx={{ fontWeight: 700 }}>New Collection</DialogTitle>
         <DialogContent>
+          {/* The placeholder is an example, not a label — it disappears the
+              moment anyone types, taking the field's only description with it. */}
           <TextField
             autoFocus
             fullWidth
             size="small"
+            label="Collection name"
             placeholder="e.g. Weekend Reading"
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
@@ -431,8 +464,14 @@ export default function Collections() {
       </Dialog>
 
       {/* Add-to-collection dialog */}
-      <Dialog open={Boolean(addToArticle)} onClose={() => setAddToArticle(null)} fullWidth maxWidth="xs">
-        <DialogTitle sx={{ fontWeight: 700 }}>Add to Collection</DialogTitle>
+      <Dialog
+        open={Boolean(addToArticle)}
+        onClose={() => setAddToArticle(null)}
+        fullWidth
+        maxWidth="xs"
+        aria-labelledby="add-to-collection-title"
+      >
+        <DialogTitle id="add-to-collection-title" sx={{ fontWeight: 700 }}>Add to Collection</DialogTitle>
         <DialogContent>
           {state.collections.length === 0 ? (
             <Typography variant="body2" sx={{ color: "text.secondary" }}>

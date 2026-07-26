@@ -253,7 +253,7 @@ export default function VerifyEmail() {
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       >
         {toast && (
-          <Alert severity={toast.severity} variant="filled" onClose={() => setToast(null)} sx={{ borderRadius: 2 }}>
+          <Alert role={toast.severity === "error" ? "alert" : "status"} severity={toast.severity} variant="filled" onClose={() => setToast(null)} sx={{ borderRadius: 2 }}>
             {toast.message}
           </Alert>
         )}
