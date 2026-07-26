@@ -3,7 +3,7 @@ import { SlidersHorizontal } from "lucide-react";
 import { brandColors } from "../../theme/muiTheme";
 import { FilterInput } from "../shared/FilterInput";
 
-export const DiscoveryHeader = ({ query, onQueryChange }) => {
+export const DiscoveryHeader = ({ query, onQueryChange, hideFilter = false }) => {
   return (
     <Stack
       direction={{ xs: "column", md: "row" }}
@@ -23,7 +23,13 @@ export const DiscoveryHeader = ({ query, onQueryChange }) => {
           Explore the latest thoughts on design and technology from our writers.
         </Typography>
       </Box>
-      <Stack direction="row" spacing={1.25} sx={{ width: { xs: "100%", md: "auto" } }}>
+      {/* The local filter narrows the loaded feed, which has no meaning while
+          global search results are on screen. */}
+      <Stack
+        direction="row"
+        spacing={1.25}
+        sx={{ width: { xs: "100%", md: "auto" }, display: hideFilter ? "none" : "flex" }}
+      >
         <FilterInput
           value={query}
           onChange={onQueryChange}
@@ -31,6 +37,7 @@ export const DiscoveryHeader = ({ query, onQueryChange }) => {
           sx={{ flex: { xs: 1, md: "0 0 280px" } }}
         />
         <IconButton
+          aria-label="Filter options"
           sx={{
             borderRadius: 2,
             border: "1px solid",
@@ -40,7 +47,7 @@ export const DiscoveryHeader = ({ query, onQueryChange }) => {
             "&:hover": { color: brandColors.primary, borderColor: brandColors.primary },
           }}
         >
-          <SlidersHorizontal size={18} />
+          <SlidersHorizontal size={18} aria-hidden="true" />
         </IconButton>
       </Stack>
     </Stack>

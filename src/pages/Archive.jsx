@@ -71,6 +71,9 @@ export default function Archive() {
   }, [articles, activeTab, query]);
 
   const handleEdit = (id) => navigate(`/dashboard/write?edit=${id}`);
+  // Only a published article has a public page; anything else opens the editor.
+  const handleRead = (a) =>
+    navigate(a.status === "Published" ? `/article/${a.id}` : `/dashboard/write?edit=${a.id}`);
   const handleStats = () => navigate("/dashboard/analytics");
   // The store refreshes its cache and notifies subscribers on success.
   const handleArchive = (id) => archiveArticle(id);
@@ -163,20 +166,26 @@ export default function Archive() {
           {filtered.length} {filtered.length === 1 ? "item" : "items"}
         </Typography>
         <Box sx={{ flex: 1 }} />
-        <Stack direction="row" spacing={0.5}>
+        {/* Which view is active was conveyed only by a tint. `aria-pressed`
+            states it, matching the pattern already used elsewhere in the app. */}
+        <Stack direction="row" spacing={0.5} role="group" aria-label="Layout">
           <IconButton
             size="small"
             onClick={() => setView("list")}
+            aria-label="List view"
+            aria-pressed={view === "list"}
             sx={{ borderRadius: 1.5, bgcolor: view === "list" ? brandColors.hover : "transparent", color: view === "list" ? "primary.main" : "text.secondary" }}
           >
-            <List size={16} />
+            <List size={16} aria-hidden="true" />
           </IconButton>
           <IconButton
             size="small"
             onClick={() => setView("grid")}
+            aria-label="Grid view"
+            aria-pressed={view === "grid"}
             sx={{ borderRadius: 1.5, bgcolor: view === "grid" ? brandColors.hover : "transparent", color: view === "grid" ? "primary.main" : "text.secondary" }}
           >
-            <LayoutGrid size={16} />
+            <LayoutGrid size={16} aria-hidden="true" />
           </IconButton>
         </Stack>
       </Stack>
@@ -191,6 +200,7 @@ export default function Archive() {
               <ArticleCard
                 key={a.id}
                 {...a}
+                onRead={() => handleRead(a)}
                 onEdit={() => handleEdit(a.id)}
                 onArchive={() => (a.status === "Archived" ? handleRestore(a.id) : handleArchive(a.id))}
                 onDelete={() => setPendingDelete(a.id)}
@@ -275,24 +285,30 @@ export default function Archive() {
                     </Typography>
                   </Stack>
                 </Box>
+                {/*
+                  Five identical icon buttons repeat on every row. Naming them
+                  "Edit" and "Delete" alone would give a screen-reader user a
+                  list of verbs with no objects, so each one carries the title
+                  it acts on.
+                */}
                 <Stack direction="row" spacing={0.5}>
-                  <IconButton size="small" onClick={() => handleEdit(a.id)} sx={{ color: "text.secondary", "&:hover": { color: "primary.main" } }}>
-                    <Pencil size={16} />
+                  <IconButton size="small" onClick={() => handleEdit(a.id)} aria-label={`Edit ${a.title}`} sx={{ color: "text.secondary", "&:hover": { color: "primary.main" } }}>
+                    <Pencil size={16} aria-hidden="true" />
                   </IconButton>
-                  <IconButton size="small" onClick={handleStats} sx={{ color: brandColors.primary }}>
-                    <BarChart2 size={16} />
+                  <IconButton size="small" onClick={handleStats} aria-label={`View stats for ${a.title}`} sx={{ color: brandColors.primary }}>
+                    <BarChart2 size={16} aria-hidden="true" />
                   </IconButton>
                   {archived ? (
-                    <IconButton size="small" onClick={() => handleRestore(a.id)} sx={{ color: "text.secondary", "&:hover": { color: "primary.main" } }}>
-                      <ArchiveRestore size={16} />
+                    <IconButton size="small" onClick={() => handleRestore(a.id)} aria-label={`Restore ${a.title}`} sx={{ color: "text.secondary", "&:hover": { color: "primary.main" } }}>
+                      <ArchiveRestore size={16} aria-hidden="true" />
                     </IconButton>
                   ) : (
-                    <IconButton size="small" onClick={() => handleArchive(a.id)} sx={{ color: "text.secondary", "&:hover": { color: "primary.main" } }}>
-                      <ArchiveIcon size={16} />
+                    <IconButton size="small" onClick={() => handleArchive(a.id)} aria-label={`Archive ${a.title}`} sx={{ color: "text.secondary", "&:hover": { color: "primary.main" } }}>
+                      <ArchiveIcon size={16} aria-hidden="true" />
                     </IconButton>
                   )}
-                  <IconButton size="small" onClick={() => setPendingDelete(a.id)} sx={{ color: "#C25B4A" }}>
-                    <Trash2 size={16} />
+                  <IconButton size="small" onClick={() => setPendingDelete(a.id)} aria-label={`Delete ${a.title}`} sx={{ color: "#C25B4A" }}>
+                    <Trash2 size={16} aria-hidden="true" />
                   </IconButton>
                 </Stack>
               </Stack>

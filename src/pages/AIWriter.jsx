@@ -21,24 +21,35 @@ import NeuralSidebar from "../components/aiwriter/NeuralSidebar";
 import SeoSidebar from "../components/aiwriter/SeoSidebar";
 import "../components/aiwriter/aiwriter.css";
 import { brandColors } from "../theme/muiTheme";
-import { createArticle } from "../utils/articlesStore";
+import {
+  createArticle,
+  updateArticle,
+  getArticles,
+  refreshArticles,
+  subscribeArticles,
+} from "../utils/articlesStore";
+import { nextUntitledTitle } from "../utils/articleTitle";
 import { generateArticle, generateParagraph, generateInsights } from "../utils/aiStore";
+import { capability, fetchEntitlements, subscribeEntitlements } from "../utils/entitlementsStore";
+import { isPlanLimitError } from "../utils/apiClient";
 import { getProfile, getInitials } from "../utils/profileStore";
 
 const TONES = ["Academic", "Minimalist", "Persuasive", "Technical"];
 const LENGTHS = ["Short", "Medium", "Long"];
 const CATEGORIES = ["General", "AI", "Design", "Technology", "Business", "Science"];
 
-// Starter document so the workspace lands populated, matching the reference design.
-const SEED_DOC = {
-  title: "The Future of Neural Prose",
-  html: [
-    "<p>In the quiet intersection of human creativity and algorithmic precision, a new form of literature is beginning to emerge. This is not merely the automation of text, but the augmentation of thought — a neural prose that breathes through the silicon and the soul alike.</p>",
-    "<p>QuiLLora AI represents the frontier of this transition. By leveraging transformer models tuned for high-precision editorial standards, writers are no longer constrained by the blank page. Instead, they operate in a collaborative feedback loop where intent is met with structural intelligence.</p>",
-    "<blockquote><p>The machine does not replace the writer; it provides the scaffold upon which the architect builds higher than ever before possible.</p></blockquote>",
-    "<p>As we look toward the horizon, the distinction between human-authored and machine-enhanced text will continue to blur. What remains constant is the writer's judgment — the taste that decides which suggestions serve the work and which ones dilute it.</p>",
-  ].join(""),
-};
+/*
+ * The canvas starts empty.
+ *
+ * It used to open on four polished paragraphs about "neural prose" under a
+ * fixed title — text no model produced, presented exactly as a finished AI
+ * draft. Anyone opening the page saw output they had not asked for, and
+ * saving without generating stored that sample as their own article.
+ *
+ * Now the page opens empty with a real default title, and prose appears only
+ * when the server has actually generated some.
+ */
+const EMPTY_DOC = { title: "", html: "" };
 
 // Generation now happens server-side (POST /ai/generate), so the local
 // template engine that used to live here has been removed along with its
@@ -57,41 +68,111 @@ export default function AIWriter() {
   const [length, setLength] = useState("Medium");
   const [category, setCategory] = useState("General");
   const [generating, setGenerating] = useState(false);
-  const [article, setArticle] = useState(SEED_DOC);
+  const [article, setArticle] = useState(EMPTY_DOC);
   const [genCount, setGenCount] = useState(0);
-  const [title, setTitle] = useState(SEED_DOC.title);
+  const [title, setTitle] = useState("");
+  // Set once the author edits the title, or a generation supplies one.
+  const [titleTouched, setTitleTouched] = useState(false);
   const [toast, setToast] = useState(null);
   const [intakeOpen, setIntakeOpen] = useState(false);
 
   const [activeKey, setActiveKey] = useState("rewrite");
   const [insights, setInsights] = useState(null);
-  const [wordCount, setWordCount] = useState(htmlToWordCount(SEED_DOC.html));
+  const [wordCount, setWordCount] = useState(0);
   const [saving, setSaving] = useState(false);
   const [publishing, setPublishing] = useState(false);
-  const [publishedAt, setPublishedAt] = useState(null);
+  // Set after the first save; later saves update it instead of creating again.
+  const [savedArticle, setSavedArticle] = useState(null);
   const [updatedLabel, setUpdatedLabel] = useState(
     new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
   );
 
   const saveTimeout = useRef(null);
 
-  const canGenerate = topic.trim().length > 2 && !generating;
+  /*
+   * Today's AI allowance, from the server.
+   *
+   * Display and explanation only — the API claims a slot atomically and
+   * refuses over-limit requests whatever this says. Refetched after each
+   * generation because usage has just changed.
+   */
+  const [aiQuota, setAiQuota] = useState(() => capability("aiGenerationsPerDay"));
+
+  useEffect(() => {
+    const unsubscribe = subscribeEntitlements(() =>
+      setAiQuota(capability("aiGenerationsPerDay")),
+    );
+    fetchEntitlements().then(() => setAiQuota(capability("aiGenerationsPerDay")));
+    return unsubscribe;
+  }, []);
+
+  /*
+   * Default title, from the author's real articles rather than a constant.
+   * A generation supplies its own title, and anything the author types wins.
+   */
+  useEffect(() => {
+    if (titleTouched) return undefined;
+
+    const apply = () => {
+      if (!titleTouched) setTitle(nextUntitledTitle(getArticles()));
+    };
+
+    const unsubscribe = subscribeArticles(apply);
+    apply();
+    refreshArticles().catch(() => {});
+    return unsubscribe;
+  }, [titleTouched]);
+
+  const refreshQuota = () => fetchEntitlements().then(() => setAiQuota(capability("aiGenerationsPerDay")));
+
+  const dailyLimitReached = Boolean(aiQuota?.reached);
+  const canGenerate = topic.trim().length > 2 && !generating && !dailyLimitReached;
+
+  /**
+   * Whether the canvas holds work a generation would destroy.
+   *
+   * Generation replaces the whole document. If the author has written or
+   * edited anything, that is theirs and must not vanish because they opened
+   * the intake panel again.
+   */
+  const canvasHasWork = () => {
+    const html = canvasRef.current?.getHTML?.() ?? article?.html ?? "";
+    return htmlToWordCount(html) > 0;
+  };
 
   const runGeneration = async () => {
     if (!canGenerate) return;
+
+    // Only ever asked when there is something to lose. A first generation on
+    // an empty canvas is never interrupted.
+    const replaceWarning =
+      "Generating will replace everything in the editor. " +
+      "Your current draft will be lost unless you save it first.\n\nReplace it?";
+
+    if (canvasHasWork() && !window.confirm(replaceWarning)) {
+      return;
+    }
+
     setGenerating(true);
     try {
       //  makes a repeat request return a different draft for the
       // same prompt; without it the backend is deterministic.
       const result = await generateArticle({ topic: topic.trim(), tone, length, category, variation: genCount });
+      // The server's response drives the editor: its title, its HTML, its
+      // word count. Nothing here is synthesised locally.
       setArticle(result);
       setGenCount((n) => n + 1);
       setTitle(result.title);
+      setTitleTouched(true);
       setWordCount(result.wordCount ?? htmlToWordCount(result.html));
       setUpdatedLabel(new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }));
       setIntakeOpen(false);
+      // A generation was just spent; re-read rather than guessing locally.
+      refreshQuota();
     } catch (error) {
       setToast({ severity: "error", message: error?.response?.data?.message || "Generation failed. Please try again." });
+      // A refusal usually means the day is spent; let the panel say so.
+      if (isPlanLimitError(error)) refreshQuota();
     } finally {
       setGenerating(false);
     }
@@ -112,11 +193,13 @@ export default function AIWriter() {
       const next = await generateParagraph({ topic: topic.trim(), variation: genCount });
       canvasRef.current?.insertParagraph(next.html);
       setGenCount((n) => n + 1);
+      refreshQuota();
     } catch (error) {
       setToast({
         severity: "error",
         message: error?.response?.data?.message || "Could not generate a paragraph.",
       });
+      if (isPlanLimitError(error)) refreshQuota();
     } finally {
       setGenerating(false);
     }
@@ -131,7 +214,16 @@ export default function AIWriter() {
     }
 
     try {
-      return await createArticle({ title, content: html, status, category, generatedByAI: true });
+      // Saving twice used to create a second article every time. Once saved,
+      // the same document is updated.
+      const payload = { title, content: html, status, category, generatedByAI: true };
+
+      const saved = savedArticle
+        ? await updateArticle(savedArticle.id, payload).then(() => ({ ...savedArticle, ...payload }))
+        : await createArticle(payload);
+
+      setSavedArticle(saved);
+      return saved;
     } catch (error) {
       setToast({
         severity: "error",
@@ -148,7 +240,6 @@ export default function AIWriter() {
 
     if (!saved) return;
 
-    setPublishedAt("Just now");
     setToast({ severity: "success", message: "Article published! Redirecting to My Articles..." });
     setTimeout(() => navigate("/dashboard/my-article"), 900);
   };
@@ -159,8 +250,13 @@ export default function AIWriter() {
     }
   };
 
-  const handlePublishToWeb = () => setToast({ severity: "info", message: "Public link copied to clipboard (demo)." });
-  const handleExport = () => setToast({ severity: "info", message: "Exporting as Markdown... (demo)" });
+  /* Publishing to the web is what "Publish" already does; there is no
+     separate share-link service, so this no longer claims to have copied one. */
+  const handlePublishToWeb = () =>
+    setToast({ severity: "info", message: "Publish the article first, then share it from My Articles." });
+  /* No export endpoint exists; saying so beats pretending a file was written. */
+  const handleExport = () =>
+    setToast({ severity: "info", message: "Markdown export isn't available yet." });
 
   // Insights are computed server-side from the live draft, so they reflect
   // the actual text rather than a canned string.
@@ -187,9 +283,21 @@ export default function AIWriter() {
   const readingMinutes = Math.max(1, Math.round(wordCount / 300));
   const contentScore = Math.min(96, 58 + Math.round(wordCount / 12));
 
+  /*
+   * Version history is not stored — the article model keeps no revisions — so
+   * this lists what is actually known: the working draft, and each generation
+   * made in this session. It no longer invents a "v2.3 by AI Assistant" edit
+   * that never happened.
+   */
   const revisions = [
-    { title: "v2.4 — Current Version", sub: `${publishedAt || "2 mins ago"} by ${profile.name}`, current: true },
-    { title: "v2.3 — Tone Adjustment", sub: "1 hour ago by AI Assistant", current: false },
+    {
+      title: savedArticle ? "Saved draft" : "Working draft",
+      sub: savedArticle ? `Last saved by ${profile.name}` : "Not saved yet",
+      current: true,
+    },
+    ...(genCount > 0
+      ? [{ title: `${genCount} generation${genCount === 1 ? "" : "s"} this session`, sub: "Version history isn't kept yet", current: false }]
+      : []),
   ];
 
   const editorKey = `doc-${genCount}`;
@@ -238,8 +346,12 @@ export default function AIWriter() {
           initialContent={article.html}
           onUpdate={handleContentUpdate}
           title={title}
-          onTitleChange={setTitle}
-          meta={`Draft v2.4 · Updated ${updatedLabel}`}
+          onTitleChange={(next) => {
+            // The author's title, from here on.
+            setTitleTouched(true);
+            setTitle(next);
+          }}
+          meta={`Updated ${updatedLabel}`}
         />
 
         <SeoSidebar
@@ -257,7 +369,7 @@ export default function AIWriter() {
       </div>
 
       <div className="aiw-statusbar">
-        <span><span className="aiw-status-dot" />Draft v2.4 saved</span>
+        <span><span className="aiw-status-dot" />{savedArticle ? "Saved to My Articles" : "Not saved yet"}</span>
         <span>Collaboration: 2 active</span>
         <span>{saving ? "Syncing to Cloud..." : "Synced to Cloud"}</span>
         <div className="aiw-statusbar-spacer" />
@@ -280,6 +392,8 @@ export default function AIWriter() {
         onClose={() => setIntakeOpen(false)}
         fullWidth
         maxWidth={false}
+        aria-labelledby="ai-intake-title"
+        aria-describedby="ai-intake-description"
         slotProps={{
           paper: {
             sx: {
@@ -291,15 +405,17 @@ export default function AIWriter() {
       >
         <DialogTitle sx={{ fontWeight: 800 }}>
           <Stack direction="row" spacing={1} sx={{ alignItems: "center", color: brandColors.primary }}>
-            <Wand2 size={20} />
-            <Typography component="span" sx={{ fontWeight: 800, color: "text.primary" }}>
+            <Wand2 size={20} aria-hidden="true" />
+            {/* The heading text alone names the dialog — the icon beside it
+                would otherwise be read as part of the name. */}
+            <Typography id="ai-intake-title" component="span" sx={{ fontWeight: 800, color: "text.primary" }}>
               Let AI draft your article
             </Typography>
           </Stack>
         </DialogTitle>
         <DialogContent>
           <Stack spacing={2.5} sx={{ mt: 0.5 }}>
-            <Typography variant="body2" sx={{ color: "text.secondary" }}>
+            <Typography id="ai-intake-description" variant="body2" sx={{ color: "text.secondary" }}>
               Describe your topic, pick a tone and length, and AI will replace the current draft with a fresh one.
             </Typography>
             <TextField
@@ -340,7 +456,17 @@ export default function AIWriter() {
             </Box>
           </Stack>
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2.5 }}>
+        <DialogActions sx={{ px: 3, pb: 2.5, display: "flex", justifyContent: "space-between" }}>
+          {/* Real remaining generations, or nothing at all when unknown or
+              unlimited — never an invented credit balance. */}
+          <Typography variant="caption" sx={{ color: "text.secondary", pl: 0.5 }}>
+            {dailyLimitReached
+              ? "Daily AI limit reached"
+              : typeof aiQuota?.remaining === "number"
+                ? `${aiQuota.remaining} of ${aiQuota.limit} generations left today`
+                : ""}
+          </Typography>
+          <Box>
           <Button onClick={() => setIntakeOpen(false)} sx={{ color: "text.secondary" }}>Cancel</Button>
           <Button
             variant="contained"
@@ -351,12 +477,13 @@ export default function AIWriter() {
           >
             {generating ? "Generating..." : "Generate Article"}
           </Button>
+          </Box>
         </DialogActions>
       </Dialog>
 
       <Snackbar open={Boolean(toast)} autoHideDuration={3500} onClose={() => setToast(null)} anchorOrigin={{ vertical: "bottom", horizontal: "center" }}>
         {toast && (
-          <Alert severity={toast.severity} variant="filled" onClose={() => setToast(null)} sx={{ borderRadius: 2 }}>
+          <Alert role={toast.severity === "error" ? "alert" : "status"} severity={toast.severity} variant="filled" onClose={() => setToast(null)} sx={{ borderRadius: 2 }}>
             {toast.message}
           </Alert>
         )}

@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { Box, Container, Typography, IconButton, Avatar } from "@mui/material";
 import { Star, Quote, ChevronLeft, ChevronRight } from "lucide-react";
 import { brandColors } from "@/theme/muiTheme";
+import { scrollIntoViewGently } from "../../utils/motion";
 
 const testimonials = [
   {
@@ -48,7 +49,7 @@ export default function Testimonials() {
     if (!track) return;
     const clamped = Math.max(0, Math.min(index, testimonials.length - 1));
     const card = track.children[clamped];
-    card?.scrollIntoView({ behavior: "smooth", inline: "start", block: "nearest" });
+    scrollIntoViewGently(card, { inline: "start", block: "nearest" });
     setActive(clamped);
   };
 

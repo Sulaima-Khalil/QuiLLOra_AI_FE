@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Typography } from "@mui/material";
 import { ArticleCard, ArticleCardGrid } from "../shared/ArticleCard";
 import {
@@ -15,6 +16,7 @@ import {
  * published public articles, served through `discoverStore`.
  */
 export const DiscoveryCards = ({ query = "", isBookmarked, onToggleBookmark }) => {
+  const navigate = useNavigate();
   const [articles, setArticles] = useState(getDiscoverArticles);
   const [loaded, setLoaded] = useState(isDiscoverLoaded);
 
@@ -60,6 +62,8 @@ export const DiscoveryCards = ({ query = "", isBookmarked, onToggleBookmark }) =
         <ArticleCard
           key={item.id}
           {...item}
+          // Everything in Discover is published, so the card opens the reader.
+          onRead={() => navigate(`/article/${item.id}`)}
           bookmarked={isBookmarked?.(item.id)}
           onToggleBookmark={() => onToggleBookmark?.(item)}
         />

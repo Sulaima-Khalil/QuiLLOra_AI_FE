@@ -2,22 +2,63 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <!-- Same file the app imports, so the logo never drifts between the two. -->
-    <link rel="icon" type="image/svg+xml" href="./src/assets/quillora-mark.svg" />
-    <link rel="apple-touch-icon" href="./src/assets/quillora-mark.svg" />
-    <meta name="theme-color" content="#0b1220" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!--
+      This file is the ONLY HTML a social crawler sees.
+
+      Vercel rewrites every path to it, and Facebook, LinkedIn, Slack, WhatsApp
+      and X do not execute JavaScript — so the tags React writes at runtime
+      never reach them. The values below are therefore deliberately generic:
+      they describe the product, not whichever page was shared, because a
+      shared article link previews with exactly this markup.
+
+      Do not put page-specific content here. Correct per-article previews need
+      prerendering or an edge function; see docs/SEO.md.
+    -->
+
+    <title>QuiLLora AI — Draft, refine and publish with AI</title>
     <meta
       name="description"
       content="QuiLLora AI — an intelligent editorial workspace to draft, refine, and publish."
     />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Social preview fallback, identical for every URL. -->
+    <meta property="og:site_name" content="QuiLLora AI" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:title" content="QuiLLora AI — Draft, refine and publish with AI" />
+    <meta
+      property="og:description"
+      content="An intelligent editorial workspace to draft, refine, and publish."
+    />
+    <!--
+      No og:image on purpose. The brand mark is an SVG, which crawlers will not
+      render as a card image, and there is no PNG social image in the
+      repository. A missing image degrades to a text-only card; a broken one
+      shows an empty box.
+    -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="QuiLLora AI — Draft, refine and publish with AI" />
+    <meta
+      name="twitter:description"
+      content="An intelligent editorial workspace to draft, refine, and publish."
+    />
+
+    <!-- Icons and mobile chrome, served from /public so the paths are stable. -->
+    <link rel="icon" type="image/svg+xml" href="/quillora-mark.svg" />
+    <link rel="apple-touch-icon" href="/quillora-mark.svg" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <meta name="theme-color" content="#0b1220" />
+    <meta name="color-scheme" content="dark light" />
+    <meta name="apple-mobile-web-app-title" content="QuiLLora" />
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700&display=swap"
       rel="stylesheet"
     />
-    <title>QuiLLora AI</title>
   </head>
   <body>
     <div id="root"></div>

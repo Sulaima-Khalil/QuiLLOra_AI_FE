@@ -54,7 +54,13 @@ export default function Navbar() {
         </Box>
 
         {/* Center links */}
-        <Stack direction="row" spacing={3.5} sx={{ mx: "auto", display: { xs: "none", md: "flex" } }}>
+        <Stack
+          component="nav"
+          aria-label="Primary"
+          direction="row"
+          spacing={3.5}
+          sx={{ mx: "auto", display: { xs: "none", md: "flex" } }}
+        >
           {navLinks.map((link) => (
             <Typography
               key={link.label}
@@ -114,28 +120,35 @@ export default function Navbar() {
 
         <IconButton
           onClick={() => setOpen(true)}
+          aria-label="Open menu"
+          aria-haspopup="dialog"
+          aria-expanded={open}
           sx={{ ml: "auto", display: { xs: "inline-flex", md: "none" }, color: "#fff", border: "1px solid", borderColor: "rgba(255,255,255,0.12)", borderRadius: 2 }}
         >
-          <Menu size={20} />
+          <Menu size={20} aria-hidden="true" />
         </IconButton>
       </Stack>
 
-      {/* Mobile drawer */}
+      {/*
+        Mobile drawer. MUI's modal Drawer already traps focus, closes on
+        Escape and returns focus to the trigger, so only the name is added.
+      */}
       <Drawer
         anchor="right"
         open={open}
         onClose={() => setOpen(false)}
+        aria-label="Site menu"
         slotProps={{ paper: { sx: { width: 288, bgcolor: brandColors.dark, borderLeft: "1px solid", borderColor: "divider" } } }}
       >
         <Box sx={{ p: 2.5 }}>
           <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
             <Logo size="sm" />
-            <IconButton onClick={() => setOpen(false)} sx={{ color: "#fff" }}>
-              <X size={20} />
+            <IconButton onClick={() => setOpen(false)} aria-label="Close menu" sx={{ color: "#fff" }}>
+              <X size={20} aria-hidden="true" />
             </IconButton>
           </Stack>
 
-          <List sx={{ mt: 2 }}>
+          <List component="nav" aria-label="Primary" sx={{ mt: 2 }}>
             {navLinks.map((link) => (
               <ListItemButton
                 key={link.label}

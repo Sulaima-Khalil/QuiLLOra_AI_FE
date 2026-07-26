@@ -63,6 +63,12 @@ const LoginStage = ({ mark }) => (
           </div>
         </div>
 
+        {/*
+          Illustration, not data. This panel is a picture of the product shown
+          beside the sign-in form, to a visitor with no session and therefore
+          no numbers to show. Every figure in it is `aria-hidden` set dressing;
+          nothing here is or should be wired to the API.
+        */}
         <div className="gcard satellite stat" aria-hidden>
           <div className="stat-label">Words this week</div>
           <div className="stat-value">1,240 <small>+18%</small></div>

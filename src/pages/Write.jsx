@@ -36,18 +36,28 @@ import {
 } from "lucide-react";
 import Editor from "../components/editer/Editer";
 import { brandColors } from "../theme/muiTheme";
-import { fetchArticleById, createArticle, updateArticle } from "../utils/articlesStore";
+import {
+  fetchArticleById,
+  createArticle,
+  updateArticle,
+  getArticles,
+  refreshArticles,
+  subscribeArticles,
+} from "../utils/articlesStore";
+import { nextUntitledTitle } from "../utils/articleTitle";
+import { capability, fetchEntitlements, subscribeEntitlements } from "../utils/entitlementsStore";
 import { getProfile, getInitials } from "../utils/profileStore";
+import { scrollIntoViewGently } from "../utils/motion";
 
-// Starter document (headings included so the outline lands populated).
-const SEED_HTML = [
-  "<h1>Introduction</h1>",
-  "<p>Open with the promise of the piece — what the reader will walk away understanding. Keep the first paragraph tight and concrete.</p>",
-  "<h1>The Core Thesis</h1>",
-  "<p>State the central argument plainly, then give it room to breathe. This is the paragraph readers will quote.</p>",
-  "<h1>Supporting Detail</h1>",
-  "<p>Back the thesis with evidence, examples, or a short story. One idea per paragraph keeps the rhythm clean.</p>",
-].join("");
+/*
+ * A new article starts empty.
+ *
+ * This used to open on three headings of sample copy under the title "The
+ * Future of Neural Prose", which then had to be deleted before real writing
+ * could start — and, if it was not, was saved verbatim as the author's work.
+ * The editor has a placeholder for the empty state.
+ */
+const EMPTY_DOC = "";
 
 const VISIBILITY = [
   { value: "public", label: "Public (Standard)", icon: Globe },
@@ -74,17 +84,21 @@ const readingEase = (text) => {
 };
 
 export const Write = () => {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const editId = searchParams.get("edit");
   const [existingArticle, setExistingArticle] = useState(null);
+  // True once the author edits the title, which freezes the generated default.
+  const [titleTouched, setTitleTouched] = useState(false);
+  const [publishQuota, setPublishQuota] = useState(() => capability("publishedArticles"));
   const navigate = useNavigate();
   const editorRef = useRef(null);
   const canvasRef = useRef(null);
   const profile = useMemo(() => getProfile(), []);
 
-  const seedContent = SEED_HTML;
+  const seedContent = EMPTY_DOC;
 
-  const [title, setTitle] = useState("The Future of Neural Prose");
+  // Replaced by the next free "Untitled N" once the article list loads.
+  const [title, setTitle] = useState("");
   const [editorContent, setEditorContent] = useState(seedContent);
   const [outline, setOutline] = useState(() => parseHeadings(seedContent));
   const [stats, setStats] = useState(() => {
@@ -94,16 +108,49 @@ export const Write = () => {
 
   const [visibility, setVisibility] = useState("public");
   const [allowComments, setAllowComments] = useState(true);
-  const [tags, setTags] = useState(["Architecture", "Technology"]);
+  const [tags, setTags] = useState([]);
   const [tagDraft, setTagDraft] = useState("");
   const [seoTitle, setSeoTitle] = useState("");
   const [excerpt, setExcerpt] = useState("");
   const [note, setNote] = useState("");
-  const [notes, setNotes] = useState([
-    { id: 1, text: "Keep the tone confident yet accessible for the executive summary." },
-  ]);
+  const [notes, setNotes] = useState([]);
   const [toast, setToast] = useState(null);
   const [saving, setSaving] = useState(false);
+
+  /*
+   * Publishing headroom, for explanation only.
+   *
+   * The plan rations published articles, not drafts, so this is fetched on
+   * every visit — an author editing an existing draft still needs to know
+   * whether Publish will be refused. The server enforces it regardless.
+   */
+  useEffect(() => {
+    const unsubscribe = subscribeEntitlements(() =>
+      setPublishQuota(capability("publishedArticles")),
+    );
+    fetchEntitlements().then(() => setPublishQuota(capability("publishedArticles")));
+    return unsubscribe;
+  }, []);
+
+  /*
+   * Default title for a new article, derived from the author's real articles
+   * so the sequence continues across devices and survives a cache clear.
+   *
+   * Only ever fills an untouched field: `titleTouched` is set the moment the
+   * author types, and an existing article's own title always wins.
+   */
+  useEffect(() => {
+    if (editId || titleTouched) return undefined;
+
+    const apply = () => {
+      if (!titleTouched) setTitle(nextUntitledTitle(getArticles()));
+    };
+
+    const unsubscribe = subscribeArticles(apply);
+    apply();
+    refreshArticles().catch(() => {});
+    return unsubscribe;
+  }, [editId, titleTouched]);
 
   // `?edit=<id>` loads the article from the API. The editor is keyed on
   // `editorContent`, so it remounts with the fetched body once it arrives.
@@ -117,8 +164,10 @@ export const Write = () => {
         if (cancelled) return;
 
         setExistingArticle(article);
+        // The persisted title, always — never a generated default.
         setTitle(article.title);
-        setEditorContent(article.content || SEED_HTML);
+        setTitleTouched(true);
+        setEditorContent(article.content || EMPTY_DOC);
         setOutline(parseHeadings(article.content || ""));
         setExcerpt(article.excerpt || "");
         setTags(article.tags?.length ? article.tags : []);
@@ -148,7 +197,7 @@ export const Write = () => {
 
   const scrollToHeading = (index) => {
     const nodes = canvasRef.current?.querySelectorAll(".ProseMirror h1, .ProseMirror h2, .ProseMirror h3");
-    nodes?.[index]?.scrollIntoView({ behavior: "smooth", block: "center" });
+    scrollIntoViewGently(nodes?.[index], { block: "center" });
   };
 
   const addTag = () => {
@@ -195,6 +244,9 @@ export const Write = () => {
         const created = await createArticle(payload);
         // Subsequent saves update this article rather than creating another.
         setExistingArticle(created);
+        // Reloading now reopens the saved article — with its real title —
+        // rather than opening a blank new one and duplicating it.
+        setSearchParams({ edit: created.id }, { replace: true });
       }
       return true;
     } catch (error) {
@@ -231,8 +283,35 @@ export const Write = () => {
 
   const VisibilityIcon = VISIBILITY.find((v) => v.value === visibility)?.icon || Globe;
 
+  // Publishing is what the plan limits. An article that is already published
+  // holds a slot it has been counted for, so it is never blocked.
+  const alreadyPublished = existingArticle?.status === "Published";
+  const atPublishLimit = !alreadyPublished && Boolean(publishQuota?.reached);
+
   return (
     <Box sx={{ height: "100vh", display: "flex", flexDirection: "column", bgcolor: brandColors.dark }}>
+      {/*
+        Publishing headroom, explained before the author reaches for Publish.
+        Purely informational — the server refuses the transition whether or
+        not this banner rendered, and drafts are never blocked.
+      */}
+      {atPublishLimit && (
+        <Alert
+          role="status"
+          severity="warning"
+          variant="filled"
+          sx={{ borderRadius: 0 }}
+          action={
+            <Button component={Link} to="/dashboard/upgrade" size="small" sx={{ color: "inherit", fontWeight: 700 }}>
+              View plans
+            </Button>
+          }
+        >
+          You&apos;ve published all {publishQuota.limit} articles your plan allows. Saving
+          drafts still works — unpublish one or upgrade to publish this.
+        </Alert>
+      )}
+
       {/* Top bar */}
       <Stack
         direction="row"
@@ -310,8 +389,13 @@ export const Write = () => {
           <Stack spacing={0.25} sx={{ mb: 3 }}>
             {outline.length ? (
               outline.map((h, i) => (
+                /* Jump-to-heading entries. Were clickable Stacks, so the
+                   document outline could not be navigated from the keyboard
+                   at all. */
                 <Stack
                   key={`${h.text}-${i}`}
+                  component="button"
+                  type="button"
                   direction="row"
                   spacing={1}
                   onClick={() => scrollToHeading(i)}
@@ -322,12 +406,18 @@ export const Write = () => {
                     pr: 1,
                     borderRadius: 1.5,
                     cursor: "pointer",
+                    width: "100%",
+                    textAlign: "left",
+                    font: "inherit",
+                    border: 0,
+                    bgcolor: "transparent",
                     color: i === 0 ? brandColors.mint : "rgba(255,255,255,0.6)",
                     "&:hover": { color: "#fff", bgcolor: "rgba(255,255,255,0.06)" },
                   }}
                 >
-                  <Box sx={{ width: 5, height: 5, borderRadius: "50%", bgcolor: i === 0 ? brandColors.mint : "rgba(255,255,255,0.3)", flexShrink: 0 }} />
-                  <Typography variant="body2" sx={{ fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  <Box aria-hidden="true" sx={{ width: 5, height: 5, borderRadius: "50%", bgcolor: i === 0 ? brandColors.mint : "rgba(255,255,255,0.3)", flexShrink: 0 }} />
+                  {/* `span`: a button may only contain phrasing content. */}
+                  <Typography component="span" variant="body2" sx={{ fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                     {h.text}
                   </Typography>
                 </Stack>
@@ -439,8 +529,16 @@ export const Write = () => {
           >
             <InputBase
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              onBlur={() => !title.trim() && setTitle("Untitled Article")}
+              onChange={(e) => {
+                // From here the title is the author's, not a default.
+                setTitleTouched(true);
+                setTitle(e.target.value);
+              }}
+              // An emptied title falls back to the next free default rather
+              // than a fixed "Untitled Article".
+              onBlur={() => !title.trim() && setTitle(nextUntitledTitle(getArticles()))}
+              inputProps={{ "aria-label": "Article title" }}
+              placeholder="Untitled"
               fullWidth
               multiline
               sx={{
@@ -500,12 +598,17 @@ export const Write = () => {
         >
           <Typography sx={{ ...sectionLabel, mb: 1.5 }}>Publishing Settings</Typography>
 
-          <Typography variant="caption" sx={{ color: "rgba(255,255,255,0.55)", mb: 0.75 }}>Visibility</Typography>
+          {/* The caption reads as this control's label on screen but was not
+              wired to it, so the Select announced only its current value. */}
+          <Typography id="visibility-label" variant="caption" sx={{ color: "rgba(255,255,255,0.7)", mb: 0.75 }}>
+            Visibility
+          </Typography>
           <Select
             value={visibility}
             onChange={(e) => setVisibility(e.target.value)}
             size="small"
-            startAdornment={<VisibilityIcon size={14} style={{ marginRight: 8, color: brandColors.mint }} />}
+            aria-labelledby="visibility-label"
+            startAdornment={<VisibilityIcon size={14} aria-hidden="true" style={{ marginRight: 8, color: brandColors.mint }} />}
             sx={{
               mb: 2,
               color: "#fff",
@@ -658,7 +761,7 @@ export const Write = () => {
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       >
         {toast && (
-          <Alert severity={toast.severity} variant="filled" onClose={() => setToast(null)} sx={{ borderRadius: 2 }}>
+          <Alert role={toast.severity === "error" ? "alert" : "status"} severity={toast.severity} variant="filled" onClose={() => setToast(null)} sx={{ borderRadius: 2 }}>
             {toast.message}
           </Alert>
         )}

@@ -10,6 +10,8 @@ import {
   Menu,
   MenuItem,
   ListItemIcon,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import {
   Plus,
@@ -22,6 +24,8 @@ import {
   Archive as ArchiveIcon,
   Trash2,
   ArrowRight,
+  BookOpen,
+  Share2,
 } from "lucide-react";
 import { brandColors } from "../theme/muiTheme";
 import {
@@ -32,6 +36,7 @@ import {
   subscribeArticles,
 } from "../utils/articlesStore";
 import { articleMetrics, formatViews, formatWords, formatCount } from "../utils/metrics";
+import { shareArticle, isShareable } from "../utils/shareArticle";
 import { ConfirmDialog } from "../components/shared/ConfirmDialog";
 
 const TABS = ["All", "Published", "Drafts", "Scheduled"];
@@ -130,6 +135,7 @@ const MyArticle = () => {
   const [page, setPage] = useState(0);
   const [menu, setMenu] = useState({ anchor: null, item: null });
   const [pendingDelete, setPendingDelete] = useState(null);
+  const [toast, setToast] = useState(null);
 
   // The store hydrates from the API after mount, so the page subscribes
   // rather than reading the cache once.
@@ -184,6 +190,19 @@ const MyArticle = () => {
   const confirmDelete = async () => {
     await deleteArticle(pendingDelete);
     setPendingDelete(null);
+  };
+
+  const handleShare = async () => {
+    const article = menu.item;
+    closeMenu();
+
+    const result = await shareArticle({
+      id: article.id,
+      title: article.title,
+      excerpt: article.excerpt || article.description,
+    });
+
+    if (!result.silent) setToast(result);
   };
 
   return (
@@ -329,7 +348,9 @@ const MyArticle = () => {
                     <Box sx={{ minWidth: 0 }}>
                       <Typography
                         component={Link}
-                        to={`/dashboard/write?edit=${a.id}`}
+                        // The title is a read action: published rows open the
+                        // public page, drafts have none so they open the editor.
+                        to={isShareable(a) ? `/article/${a.id}` : `/dashboard/write?edit=${a.id}`}
                         sx={{
                           display: "-webkit-box",
                           WebkitLineClamp: 2,
@@ -374,8 +395,14 @@ const MyArticle = () => {
                     {a.date}
                   </Typography>
                   {/* Menu */}
-                  <IconButton size="small" onClick={(e) => setMenu({ anchor: e.currentTarget, item: a })} sx={{ color: "text.secondary", justifySelf: "end" }}>
-                    <MoreVertical size={16} />
+                  <IconButton
+                    size="small"
+                    onClick={(e) => setMenu({ anchor: e.currentTarget, item: a })}
+                    aria-label={`More actions for ${a.title}`}
+                    aria-haspopup="menu"
+                    sx={{ color: "text.secondary", justifySelf: "end" }}
+                  >
+                    <MoreVertical size={16} aria-hidden="true" />
                   </IconButton>
                 </Box>
               ))
@@ -389,15 +416,17 @@ const MyArticle = () => {
         <Typography variant="body2" sx={{ color: "text.secondary" }}>
           Showing {filtered.length === 0 ? 0 : safePage * PAGE_SIZE + 1}-{Math.min(filtered.length, (safePage + 1) * PAGE_SIZE)} of {filtered.length} articles
         </Typography>
-        <Stack direction="row" spacing={0.75} sx={{ alignItems: "center" }}>
-          <IconButton size="small" disabled={safePage === 0} onClick={() => setPage((p) => Math.max(0, p - 1))} sx={{ border: "1px solid", borderColor: "divider" }}>
-            <ChevronLeft size={16} />
+        <Stack component="nav" aria-label="Pagination" direction="row" spacing={0.75} sx={{ alignItems: "center" }}>
+          <IconButton size="small" disabled={safePage === 0} onClick={() => setPage((p) => Math.max(0, p - 1))} aria-label="Previous page" sx={{ border: "1px solid", borderColor: "divider" }}>
+            <ChevronLeft size={16} aria-hidden="true" />
           </IconButton>
           {Array.from({ length: pageCount }).slice(0, 4).map((_, i) => (
             <Button
               key={i}
               size="small"
               onClick={() => setPage(i)}
+              aria-label={`Page ${i + 1}`}
+              aria-current={safePage === i ? "page" : undefined}
               sx={{
                 minWidth: 32,
                 height: 32,
@@ -412,13 +441,25 @@ const MyArticle = () => {
               {i + 1}
             </Button>
           ))}
-          <IconButton size="small" disabled={safePage >= pageCount - 1} onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))} sx={{ border: "1px solid", borderColor: "divider" }}>
-            <ChevronRight size={16} />
+          <IconButton size="small" disabled={safePage >= pageCount - 1} onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))} aria-label="Next page" sx={{ border: "1px solid", borderColor: "divider" }}>
+            <ChevronRight size={16} aria-hidden="true" />
           </IconButton>
         </Stack>
       </Stack>
 
       <Menu anchorEl={menu.anchor} open={Boolean(menu.anchor)} onClose={closeMenu}>
+        {isShareable(menu.item) && (
+          <MenuItem onClick={() => { navigate(`/article/${menu.item.id}`); closeMenu(); }} sx={{ fontSize: 13 }}>
+            <ListItemIcon><BookOpen size={15} /></ListItemIcon>
+            Read article
+          </MenuItem>
+        )}
+        {isShareable(menu.item) && (
+          <MenuItem onClick={handleShare} sx={{ fontSize: 13 }}>
+            <ListItemIcon><Share2 size={15} /></ListItemIcon>
+            Share public link
+          </MenuItem>
+        )}
         <MenuItem onClick={() => { navigate(`/dashboard/write?edit=${menu.item.id}`); closeMenu(); }} sx={{ fontSize: 13 }}>
           <ListItemIcon><Pencil size={15} /></ListItemIcon>
           Edit
@@ -441,6 +482,22 @@ const MyArticle = () => {
         onConfirm={confirmDelete}
         onClose={() => setPendingDelete(null)}
       />
+
+      <Snackbar
+        open={Boolean(toast)}
+        autoHideDuration={2500}
+        onClose={() => setToast(null)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          severity={toast?.ok ? "success" : "error"}
+          variant="filled"
+          onClose={() => setToast(null)}
+          sx={{ borderRadius: 2 }}
+        >
+          {toast?.message}
+        </Alert>
+      </Snackbar>
     </Stack>
   );
 };

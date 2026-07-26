@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
+  Alert,
   Box,
   Typography,
   Stack,
@@ -32,6 +33,7 @@ import {
   PLANS,
   COMPARISON,
   getSubscription,
+  fetchSubscription,
   subscribeSubscription,
   planById,
   priceFor,
@@ -74,6 +76,13 @@ const PlanCard = ({ plan, cycle, isCurrent, onSelect }) => {
   const Icon = PLAN_ICONS[plan.id];
   const price = priceFor(plan, cycle);
   const saving = savingFor(plan);
+
+  /*
+   * Starter never has a button that does anything. It is the plan you are on
+   * or the plan you fall back to; there is no checkout for a free plan, and
+   * offering one would open a payment session for nothing.
+   */
+  const isFree = plan.id === "starter";
 
   return (
     <Box
@@ -164,7 +173,7 @@ const PlanCard = ({ plan, cycle, isCurrent, onSelect }) => {
 
       <Button
         fullWidth
-        disabled={isCurrent}
+        disabled={isCurrent || isFree}
         onClick={() => onSelect(plan)}
         variant={plan.highlight ? "contained" : "outlined"}
         sx={{
@@ -182,7 +191,7 @@ const PlanCard = ({ plan, cycle, isCurrent, onSelect }) => {
           },
         }}
       >
-        {isCurrent ? "Current plan" : plan.cta}
+        {isCurrent ? "Current plan" : isFree ? "Free plan" : plan.cta}
       </Button>
 
       {plan.trialDays && !isCurrent && (
@@ -196,19 +205,45 @@ const PlanCard = ({ plan, cycle, isCurrent, onSelect }) => {
 
 export default function Upgrade() {
   const navigate = useNavigate();
-  const [subscription, setSubscription] = useState(getSubscription());
+  const [searchParams] = useSearchParams();
+  const [subscription, setSubscription] = useState(getSubscription);
   const [cycle, setCycle] = useState(subscription.cycle ?? "monthly");
 
-  useEffect(() => subscribeSubscription(setSubscription), []);
+  /*
+   * Where Safepay sends someone who backed out of the payment page. Nothing
+   * to undo — no plan was ever changed — so this is only an acknowledgement.
+   */
+  const abandonedCheckout = searchParams.get("checkout") === "cancelled";
+
+  // The plan shown as "current" is whatever the server says it is, re-read on
+  // every visit so a change made elsewhere — or on another device — shows up.
+  useEffect(() => {
+    const unsubscribe = subscribeSubscription(setSubscription);
+    fetchSubscription().catch(() => {});
+    return unsubscribe;
+  }, []);
 
   const currentPlan = planById(subscription.planId);
 
   const handleSelect = (plan) => {
+    /*
+     * Starter is free, so there is nothing to check out. Sending it to the
+     * payment step would open a Safepay session for a £0 plan that does not
+     * exist there; leaving the free plan is a cancellation, done in Settings.
+     */
+    if (plan.id === "starter") return;
+
     navigate("/dashboard/upgrade/checkout", { state: { planId: plan.id, cycle } });
   };
 
   return (
     <UpgradeLayout maxWidth={1180}>
+      {abandonedCheckout && (
+        <Alert role="status" severity="info" sx={{ mb: 3, borderRadius: 2 }}>
+          Checkout cancelled — nothing was charged and your plan hasn&apos;t changed.
+        </Alert>
+      )}
+
       {/* Heading */}
       <Box sx={{ textAlign: "center", maxWidth: 620, mx: "auto" }}>
         <Typography
@@ -348,7 +383,8 @@ export default function Upgrade() {
                             fontSize: 10.5,
                             fontWeight: 800,
                             letterSpacing: 1,
-                            color: brandColors.outline,
+                            // 2.9:1 at 10.5px bold on the table fill.
+                            color: brandColors.textMuted,
                             bgcolor: "rgba(255,255,255,0.02)",
                             borderColor: "divider",
                           }}

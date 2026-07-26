@@ -33,12 +33,19 @@ const quickActions = [
   { icon: UserPlus, label: "Invite Team", to: "#" },
 ];
 
-/** Status pill colours, keyed by the status strings the API returns. */
+/**
+ * Status pill colours, keyed by the status strings the API returns.
+ *
+ * The inks are darkened versions of the brand colours, because these are the
+ * app's only light-on-light surfaces: the palette values were tuned against
+ * navy and landed at 2.9:1 (teal), 2.7:1 (grey) and 1.7:1 (gold) on these
+ * tints, all under the 4.5:1 that 10px bold text needs. Tints unchanged.
+ */
 const STATUS_CHIP = {
-  Published: { bgcolor: "#DFF7EE", color: brandColors.primary },
-  Draft: { bgcolor: "#EEF1F0", color: brandColors.text },
-  Scheduled: { bgcolor: "#FDF2DC", color: brandColors.accentGold },
-  Archived: { bgcolor: "#EEF1F0", color: brandColors.outline },
+  Published: { bgcolor: "#DFF7EE", color: "#0a5f55" },
+  Draft: { bgcolor: "#EEF1F0", color: "#454e5e" },
+  Scheduled: { bgcolor: "#FDF2DC", color: "#7a5300" },
+  Archived: { bgcolor: "#EEF1F0", color: "#454e5e" },
 };
 
 /** Words per minute used to turn a word count into a read-time label. */
@@ -364,10 +371,12 @@ export default function Dashboard() {
                   alignItems: "center",
                   minWidth: 0
                 }}>
+                {/* The title sits immediately beside it as a link; repeating
+                    it as alt text makes the row read twice. */}
                 <Box
                   component="img"
                   src={image}
-                  alt={title}
+                  alt=""
                   sx={{ width: 44, height: 44, flexShrink: 0, borderRadius: 1.5, objectFit: "cover" }}
                 />
                 <Box sx={{ minWidth: 0 }}>
@@ -411,8 +420,13 @@ export default function Dashboard() {
                   {seo ?? 0}
                 </Typography>
               </Box>
-              <IconButton size="small" component={Link} to={`/dashboard/write?id=${id}`}>
-                <MoreVertical size={15} />
+              <IconButton
+                size="small"
+                component={Link}
+                to={`/dashboard/write?id=${id}`}
+                aria-label={`Edit ${title}`}
+              >
+                <MoreVertical size={15} aria-hidden="true" />
               </IconButton>
             </Box>
             );

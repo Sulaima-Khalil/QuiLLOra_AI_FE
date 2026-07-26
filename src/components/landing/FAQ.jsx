@@ -38,7 +38,7 @@ export default function FAQ() {
         </Box>
 
         <Box sx={{ mt: 5 }}>
-          {faqs.map((faq, i) => (
+          {faqs.map((faq) => (
             <Accordion key={faq.question} disableGutters>
               <AccordionSummary expandIcon={<ChevronDown size={18} />}>
                 <Typography variant="body1" sx={{ fontFamily: "var(--font-button)", fontWeight: 600 }}>

@@ -45,7 +45,7 @@ import {
 } from "../utils/profileStore";
 import { logoutUser, listSessions } from "../utils/auth";
 import { getTeam, getRoles, subscribeTeam, refreshTeam, inviteMember, updateMemberRole, removeMember as removeTeamMember } from "../utils/teamStore";
-import { getSubscription, subscribeSubscription, planById, priceFor, formatDate } from "../utils/planStore";
+import { getSubscription, subscribeSubscription, fetchSubscription, planById, priceFor, formatDate } from "../utils/planStore";
 
 const DEFAULT_SETTINGS = {
   tone: "Academic",
@@ -186,7 +186,11 @@ export const Setting = () => {
   const [inviteEmail, setInviteEmail] = useState("");
   const [saveError, setSaveError] = useState("");
 
-  useEffect(() => subscribeSubscription(setSubscription), []);
+  useEffect(() => {
+    const unsubscribe = subscribeSubscription(setSubscription);
+    fetchSubscription().catch(() => {});
+    return unsubscribe;
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -299,8 +303,16 @@ export const Setting = () => {
           sx={{ bgcolor: "#DFF7EE", color: brandColors.primary, fontWeight: 700, fontSize: 11 }}
         />
         <Box sx={{ flex: 1 }} />
-        <IconButton size="small" sx={{ color: "text.secondary" }}>
-          <HelpCircle size={18} />
+        {/* Was an unlabelled button with no handler — a focus stop that did
+            nothing. Pointed at the help page the icon already implied. */}
+        <IconButton
+          size="small"
+          component={RouterLink}
+          to="/dashboard/help"
+          aria-label="Help and support"
+          sx={{ color: "text.secondary" }}
+        >
+          <HelpCircle size={18} aria-hidden="true" />
         </IconButton>
         <Button
           variant="contained"
@@ -493,9 +505,13 @@ export const Setting = () => {
               {planById(subscription.planId).name}
             </Typography>
             <Typography variant="caption" sx={{ color: "rgba(255,255,255,0.65)" }}>
-              {subscription.renewsAt
-                ? `Next billing date: ${formatDate(subscription.renewsAt)}`
-                : "No paid subscription yet"}
+              {/* Server fields: an active paid plan has a period end; a
+                  requested one is still waiting on payment. */}
+              {subscription.currentPeriodEnd
+                ? `Next billing date: ${formatDate(subscription.currentPeriodEnd)}`
+                : subscription.pendingPlanId
+                  ? `${planById(subscription.pendingPlanId).name} requested — awaiting payment`
+                  : "No paid subscription yet"}
             </Typography>
           </Box>
           <Stack spacing={1.25} sx={{
@@ -632,10 +648,12 @@ export const Setting = () => {
               </Box>
               <IconButton
                 size="small"
+                aria-label={`More actions for ${member.name}`}
+                aria-haspopup="menu"
                 sx={{ color: "text.secondary" }}
                 onClick={(e) => setMemberMenu({ anchor: e.currentTarget, member })}
               >
-                <MoreVertical size={16} />
+                <MoreVertical size={16} aria-hidden="true" />
               </IconButton>
             </Stack>
           ))}
@@ -740,10 +758,17 @@ export const Setting = () => {
         </Stack>
       </Stack>
       {/* Invite member dialog */}
-      <Dialog open={inviteOpen} onClose={() => setInviteOpen(false)} fullWidth maxWidth="xs">
-        <DialogTitle sx={{ fontWeight: 700 }}>Invite Team Member</DialogTitle>
+      <Dialog
+        open={inviteOpen}
+        onClose={() => setInviteOpen(false)}
+        fullWidth
+        maxWidth="xs"
+        aria-labelledby="settings-invite-title"
+        aria-describedby="settings-invite-description"
+      >
+        <DialogTitle id="settings-invite-title" sx={{ fontWeight: 700 }}>Invite Team Member</DialogTitle>
         <DialogContent>
-          <Typography variant="body2" sx={{ mb: 2, color: "text.secondary" }}>
+          <Typography id="settings-invite-description" variant="body2" sx={{ mb: 2, color: "text.secondary" }}>
             Enter the email address of the person you'd like to invite as an Editor. An
             invitation will be sent to them.
           </Typography>
@@ -779,10 +804,19 @@ export const Setting = () => {
         </DialogActions>
       </Dialog>
       {/* Delete account confirmation */}
-      <Dialog open={deleteOpen} onClose={() => setDeleteOpen(false)} fullWidth maxWidth="xs">
-        <DialogTitle sx={{ fontWeight: 700, color: "error.main" }}>Delete Account?</DialogTitle>
+      <Dialog
+        open={deleteOpen}
+        onClose={() => setDeleteOpen(false)}
+        fullWidth
+        maxWidth="xs"
+        aria-labelledby="delete-account-title"
+        aria-describedby="delete-account-description"
+      >
+        <DialogTitle id="delete-account-title" sx={{ fontWeight: 700, color: "error.main" }}>Delete Account?</DialogTitle>
         <DialogContent>
-          <Typography variant="body2" sx={{ color: "text.secondary" }}>
+          {/* Wired as the description so the consequences are read out with
+              the dialog's name, not left for the user to discover. */}
+          <Typography id="delete-account-description" variant="body2" sx={{ color: "text.secondary" }}>
             This permanently deletes your account along with every article, collection and team
             record it owns. This action cannot be undone.
           </Typography>
@@ -809,7 +843,7 @@ export const Setting = () => {
         onClose={() => setSaved(false)}
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       >
-        <Alert severity="success" variant="filled" onClose={() => setSaved(false)} sx={{ borderRadius: 2 }}>
+        <Alert role="status" severity="success" variant="filled" onClose={() => setSaved(false)} sx={{ borderRadius: 2 }}>
           Settings saved successfully.
         </Alert>
       </Snackbar>

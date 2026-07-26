@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+# A new push to the same branch makes the previous run redundant.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Lint, test and build
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # Vite 7 declares engines "^20.19.0 || >=22.12.0"; both are covered so
+        # a version-specific break shows up here rather than on a developer's
+        # machine. 20.19 is what the project is developed against.
+        node-version: ['20.19', '22.12']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+
+      # Lockfile-aware and reproducible: fails if package.json and
+      # package-lock.json have drifted apart.
+      - name: Install dependencies
+        run: npm ci
+
+      # The repository lints clean, so any error here is newly introduced.
+      # The 20 errors that used to be the baseline were fixed rather than
+      # suppressed: 19 were `no-unused-vars` false positives on JSX-only
+      # references, now understood via react/jsx-uses-vars, one was
+      # `__dirname` linted with browser globals, and one was a genuinely
+      # unused loop index. No rule was relaxed, so a new violation fails CI.
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm test
+
+      - name: Production build
+        run: npm run build
