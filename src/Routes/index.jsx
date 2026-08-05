@@ -155,11 +155,30 @@ const routes = [
   {
     path: '/dashboard/write',
     element: (
-        <ProtectedRoute>
+      <ProtectedRoute>
         <Write />
-       </ProtectedRoute>
-     ),
+      </ProtectedRoute>
+    ),
   },
+  // Friendly editor entry points. The dashboard uses /dashboard/Write, but
+  // these aliases also support direct links to the editor without dropping
+  // authors onto the catch-all 404 screen.
+  // {
+  //   path: '/write',
+  //   element: (
+  //     <ProtectedRoute>
+  //       <Write />
+  //     </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: '/editer',
+  //   element: (
+  //     <ProtectedRoute>
+  //       <Write />
+  //     </ProtectedRoute>
+  //   ),
+  // },
   {
     path: '/dashboard/ai-writer',
     element: (

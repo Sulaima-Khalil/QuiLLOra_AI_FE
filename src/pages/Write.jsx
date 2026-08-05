@@ -1,771 +1,220 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import {
-  Box,
-  Typography,
-  Stack,
-  Button,
-  InputBase,
-  IconButton,
-  Snackbar,
-  Alert,
-  Switch,
-  Select,
-  MenuItem,
-  Chip,
-  TextField,
-  Tooltip,
-} from "@mui/material";
-import {
-  ArrowLeft,
-  Eye,
-  Send,
-  Clock,
-  List as ListIcon,
-  History,
-  StickyNote,
-  Plus,
-  Tag,
-  Users,
-  UserPlus,
-  X,
-  HelpCircle,
-  Globe,
-  Lock,
-  Link2,
-} from "lucide-react";
+import { Component, useEffect, useMemo, useRef, useState } from "react";
+import axios from "axios";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeHighlight from "rehype-highlight";
+import "highlight.js/styles/github-dark.css";
+import { Link, useSearchParams } from "react-router-dom";
+import { Box, Button, IconButton, InputBase, Menu, MenuItem, Snackbar, Alert, Tooltip, CircularProgress } from "@mui/material";
+import { ChevronDown, ChevronUp, CircleHelp, Download, FileText, Home, Moon, Pencil, Send, Sparkles, Trash2, WandSparkles, PenLine, ListCollapse, CheckCircle2, Plus } from "lucide-react";
 import Editor from "../components/editer/Editer";
-import { brandColors } from "../theme/muiTheme";
-import {
-  fetchArticleById,
-  createArticle,
-  updateArticle,
-  getArticles,
-  refreshArticles,
-  subscribeArticles,
-} from "../utils/articlesStore";
+import { getArticles, createArticle, fetchArticleById, updateArticle, refreshArticles } from "../utils/articlesStore";
+import api, { errorMessage } from "../utils/apiClient";
 import { nextUntitledTitle } from "../utils/articleTitle";
-import { capability, fetchEntitlements, subscribeEntitlements } from "../utils/entitlementsStore";
-import { getProfile, getInitials } from "../utils/profileStore";
-import { scrollIntoViewGently } from "../utils/motion";
+import { getInitials, getProfile } from "../utils/profileStore";
+import { useColorMode } from "../theme/useColorMode";
+import QuilloraMark from "../components/brand/QuilloraMark";
+import { markdownToHtml } from "../utils/markdown";
+import "../components/editer/Editor.css";
 
-/*
- * A new article starts empty.
- *
- * This used to open on three headings of sample copy under the title "The
- * Future of Neural Prose", which then had to be deleted before real writing
- * could start — and, if it was not, was saved verbatim as the author's work.
- * The editor has a placeholder for the empty state.
- */
-const EMPTY_DOC = "";
-
-const VISIBILITY = [
-  { value: "public", label: "Public (Standard)", icon: Globe },
-  { value: "unlisted", label: "Unlisted (Link only)", icon: Link2 },
-  { value: "private", label: "Private (Only me)", icon: Lock },
-];
-
-const wordsOf = (text) => (text || "").trim().split(/\s+/).filter(Boolean);
-const htmlToText = (html) => (html || "").replace(/<[^>]+>/g, " ");
-const parseHeadings = (html) => {
-  const matches = [...(html || "").matchAll(/<h([1-3])[^>]*>(.*?)<\/h[1-3]>/gi)];
-  return matches
-    .map((m) => ({ level: Number(m[1]), text: m[2].replace(/<[^>]+>/g, "").trim() }))
-    .filter((h) => h.text);
-};
-
-// Simple, honest readability proxy: shorter sentences read easier.
-const readingEase = (text) => {
-  const words = wordsOf(text);
-  if (!words.length) return 0;
-  const sentences = (text.match(/[.!?]+/g) || []).length || 1;
-  const avg = words.length / sentences;
-  return Math.max(20, Math.min(98, Math.round(120 - avg * 4)));
-};
+const wordsOf = (text) => (text || "").trim().split(/\s+/).filter(Boolean).length;
 
 export const Write = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const editId = searchParams.get("edit");
-  const [existingArticle, setExistingArticle] = useState(null);
-  // True once the author edits the title, which freezes the generated default.
-  const [titleTouched, setTitleTouched] = useState(false);
-  const [publishQuota, setPublishQuota] = useState(() => capability("publishedArticles"));
-  const navigate = useNavigate();
+  const [params, setParams] = useSearchParams();
   const editorRef = useRef(null);
-  const canvasRef = useRef(null);
+  const chatEndRef = useRef(null);
+  const chatInputRef = useRef(null);
+  const requestIdRef = useRef(0);
+  const { toggleMode } = useColorMode();
+  const editId = params.get("edit");
   const profile = useMemo(() => getProfile(), []);
-
-  const seedContent = EMPTY_DOC;
-
-  // Replaced by the next free "Untitled N" once the article list loads.
+  const [article, setArticle] = useState(null);
   const [title, setTitle] = useState("");
-  const [editorContent, setEditorContent] = useState(seedContent);
-  const [outline, setOutline] = useState(() => parseHeadings(seedContent));
-  const [stats, setStats] = useState(() => {
-    const text = htmlToText(seedContent);
-    return { words: wordsOf(text).length, ease: readingEase(text) };
-  });
-
-  const [visibility, setVisibility] = useState("public");
-  const [allowComments, setAllowComments] = useState(true);
-  const [tags, setTags] = useState([]);
-  const [tagDraft, setTagDraft] = useState("");
-  const [seoTitle, setSeoTitle] = useState("");
-  const [excerpt, setExcerpt] = useState("");
-  const [note, setNote] = useState("");
-  const [notes, setNotes] = useState([]);
+  const [content, setContent] = useState("");
+  const [wordCount, setWordCount] = useState(0);
+  const [assistantOpen, setAssistantOpen] = useState(true);
+  const [prompt, setPrompt] = useState("");
+  const [menuAnchor, setMenuAnchor] = useState(null);
   const [toast, setToast] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [assistantLoading, setAssistantLoading] = useState(false);
+  const [conversation, setConversation] = useState([]);
 
-  /*
-   * Publishing headroom, for explanation only.
-   *
-   * The plan rations published articles, not drafts, so this is fetched on
-   * every visit — an author editing an existing draft still needs to know
-   * whether Publish will be refused. The server enforces it regardless.
-   */
   useEffect(() => {
-    const unsubscribe = subscribeEntitlements(() =>
-      setPublishQuota(capability("publishedArticles")),
-    );
-    fetchEntitlements().then(() => setPublishQuota(capability("publishedArticles")));
-    return unsubscribe;
-  }, []);
-
-  /*
-   * Default title for a new article, derived from the author's real articles
-   * so the sequence continues across devices and survives a cache clear.
-   *
-   * Only ever fills an untouched field: `titleTouched` is set the moment the
-   * author types, and an existing article's own title always wins.
-   */
-  useEffect(() => {
-    if (editId || titleTouched) return undefined;
-
-    const apply = () => {
-      if (!titleTouched) setTitle(nextUntitledTitle(getArticles()));
-    };
-
-    const unsubscribe = subscribeArticles(apply);
-    apply();
-    refreshArticles().catch(() => {});
-    return unsubscribe;
-  }, [editId, titleTouched]);
-
-  // `?edit=<id>` loads the article from the API. The editor is keyed on
-  // `editorContent`, so it remounts with the fetched body once it arrives.
-  useEffect(() => {
-    if (!editId) return;
-
     let cancelled = false;
+    refreshArticles().catch(() => {});
+    if (!editId) {
+      setArticle(null);
+      setTitle(nextUntitledTitle(getArticles()));
+      setContent("");
+      return () => { cancelled = true; };
+    }
 
-    fetchArticleById(editId)
-      .then((article) => {
-        if (cancelled) return;
+    fetchArticleById(editId).then((item) => {
+      if (cancelled) return;
+      if (!item || typeof item !== "object") {
+        setToast({ severity: "error", message: "Could not load this document." });
+        return;
+      }
+      setArticle(item);
+      setTitle(item.title || "");
+      setContent(item.content || "");
+    }).catch(() => {
+      if (!cancelled) setToast({ severity: "error", message: "Could not load this document." });
+    });
 
-        setExistingArticle(article);
-        // The persisted title, always — never a generated default.
-        setTitle(article.title);
-        setTitleTouched(true);
-        setEditorContent(article.content || EMPTY_DOC);
-        setOutline(parseHeadings(article.content || ""));
-        setExcerpt(article.excerpt || "");
-        setTags(article.tags?.length ? article.tags : []);
-        setVisibility(article.visibility || "public");
-        setAllowComments(article.allowComments ?? true);
-        setSeoTitle(article.seoTitle || "");
-        setNotes(article.notes ?? []);
-
-        const text = htmlToText(article.content || "");
-        setStats({ words: wordsOf(text).length, ease: readingEase(text) });
-      })
-      .catch(() => {
-        if (!cancelled) setToast({ severity: "error", message: "Could not load that article." });
-      });
-
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [editId]);
 
-  const readingMinutes = Math.max(1, Math.round(stats.words / 200));
-
-  const handleEditorUpdate = ({ html, text, headings }) => {
-    setOutline(headings.length ? headings : parseHeadings(html));
-    setStats({ words: wordsOf(text).length, ease: readingEase(text) });
-  };
-
-  const scrollToHeading = (index) => {
-    const nodes = canvasRef.current?.querySelectorAll(".ProseMirror h1, .ProseMirror h2, .ProseMirror h3");
-    scrollIntoViewGently(nodes?.[index], { block: "center" });
-  };
-
-  const addTag = () => {
-    const t = tagDraft.trim();
-    if (t && !tags.includes(t)) setTags((prev) => [...prev, t]);
-    setTagDraft("");
-  };
-
-  const addNote = () => {
-    const t = note.trim();
-    if (!t) return;
-    setNotes((prev) => [...prev, { id: Date.now(), text: t }]);
-    setNote("");
-  };
-
-  /**
-   * Persists the document. Resolves true once the server has accepted it,
-   * so the caller can navigate only after the write actually succeeded.
-   */
-  const savePost = async (status) => {
+  const persist = async (status = "Draft") => {
     const html = editorRef.current?.getHTML() || "";
     if (!title.trim() || editorRef.current?.isEmpty()) {
-      setToast({ severity: "warning", message: "Add a title and some content first." });
-      return false;
+      setToast({ severity: "warning", message: "Add a title and some content first." }); return false;
     }
-
-    const payload = {
-      title,
-      content: html,
-      status,
-      category: tags[0] || "General",
-      excerpt,
-      tags,
-      visibility,
-      allowComments,
-      seoTitle,
-    };
-
     setSaving(true);
+    const payload = { title: title.trim(), content: html, status, category: "General", excerpt: "", tags: [], visibility: "public", allowComments: true, seoTitle: "" };
     try {
-      if (existingArticle) {
-        await updateArticle(existingArticle.id, payload);
-      } else {
-        const created = await createArticle(payload);
-        // Subsequent saves update this article rather than creating another.
-        setExistingArticle(created);
-        // Reloading now reopens the saved article — with its real title —
-        // rather than opening a blank new one and duplicating it.
-        setSearchParams({ edit: created.id }, { replace: true });
-      }
+      const saved = article ? await updateArticle(article.id, payload) : await createArticle(payload);
+      setArticle(saved); if (!article) setParams({ edit: saved.id }, { replace: true });
       return true;
     } catch (error) {
-      setToast({
-        severity: "error",
-        message: error?.response?.data?.message || "Could not save your article.",
-      });
+      setToast({ severity: "error", message: errorMessage(error, "Could not publish your document. Please try again.") });
       return false;
+    }
+    finally { setSaving(false); }
+  };
+  const publish = async () => { if (await persist("Published")) { setToast({ severity: "success", message: "Article published." }); } };
+  const insertAtCursor = (text) => {
+    if (!text.trim()) {
+      setToast({ severity: "warning", message: "Tell the assistant what you want to write." });
+      return;
+    }
+    editorRef.current?.insertContent(markdownToHtml(text));
+    setPrompt("");
+    setToast({ severity: "success", message: "Inserted into your document." });
+  };
+
+  useEffect(() => {
+    const scrollToEnd = chatEndRef.current?.scrollIntoView;
+    if (typeof scrollToEnd === "function") {
+      scrollToEnd.call(chatEndRef.current, { behavior: "smooth", block: "end" });
+    }
+  }, [conversation, assistantLoading, assistantOpen]);
+
+  useEffect(() => {
+    if (!assistantLoading && assistantOpen) chatInputRef.current?.focus();
+  }, [assistantLoading, assistantOpen]);
+
+  const handleAssistantAction = async (action = "customPrompt", customPrompt = prompt) => {
+    const trimmedPrompt = (customPrompt || "").trim();
+    if (!trimmedPrompt || assistantLoading) {
+      setToast({ severity: "warning", message: "Type a prompt so the assistant knows what to help with." });
+      return;
+    }
+
+    if ((action === "improveWriting" || action === "summarize") && !editorRef.current?.getSelectedText?.()) {
+      setToast({ severity: "info", message: action === "summarize" ? "Select text in the editor to summarize it." : "Select text in the editor to improve it." });
+      return;
+    }
+
+    const requestId = ++requestIdRef.current;
+    const timestamp = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    setConversation((messages) => [...messages, { id: `user-${requestId}`, role: "user", content: trimmedPrompt, timestamp }]);
+    setPrompt("");
+    setAssistantLoading(true);
+    try {
+      const response = await axios.post(`${(import.meta.env.VITE_API_URL || "http://localhost:4000").replace(/\/$/, "")}/api/ai/generate`, {
+        action,
+        prompt: trimmedPrompt,
+        selectedText: editorRef.current?.getSelectedText?.() || "",
+        documentTitle: title || "Untitled document",
+        documentContent: editorRef.current?.getHTML?.() || content,
+      }, { withCredentials: true });
+      const text = response?.data?.text || "";
+      if (requestId !== requestIdRef.current) return;
+      setConversation((messages) => [...messages, { id: `assistant-${requestId}`, role: "assistant", content: text, timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) }]);
+    } catch (error) {
+      if (requestId !== requestIdRef.current) return;
+      setToast({ severity: "error", message: errorMessage(error, "The assistant could not respond right now.") });
     } finally {
-      setSaving(false);
+      if (requestId === requestIdRef.current) setAssistantLoading(false);
     }
   };
 
-  const handlePublish = async () => {
-    if (!(await savePost("Published"))) return;
-    setToast({ severity: "success", message: "Article published! Redirecting to My Articles..." });
-    setTimeout(() => navigate("/dashboard/my-article"), 900);
+  const startNewChat = () => {
+    requestIdRef.current += 1;
+    setConversation([]);
+    setPrompt("");
+    setAssistantLoading(false);
+    requestAnimationFrame(() => chatInputRef.current?.focus());
   };
 
-  const handlePreview = async () => {
-    if (await savePost("Draft")) {
-      setToast({ severity: "info", message: "Draft saved — opening preview in My Articles." });
+  const handleChatKeyDown = (event) => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      handleAssistantAction();
     }
   };
 
-  const sectionLabel = {
-    px: 0.5,
-    fontWeight: 700,
-    letterSpacing: 1.5,
-    fontSize: 10,
-    color: "rgba(255,255,255,0.4)",
-    textTransform: "uppercase",
-  };
+  const recents = getArticles().slice(0, 4);
 
-  const VisibilityIcon = VISIBILITY.find((v) => v.value === visibility)?.icon || Globe;
+  return <main className="writer-shell">
+    <aside className="writer-nav" aria-label="Editor navigation">
+      <Link className="writer-logo" to="/dashboard"><QuilloraMark size={34} /><span>QuiLLora</span> <em>AI</em></Link>
+      <Button component={Link} to="/dashboard/write" className="new-document"><span>＋</span> New Document</Button>
+      <nav className="writer-links">
+        <Link to="/dashboard"><Home size={18} />Dashboard</Link>
+        <Link to="/dashboard/my-article"><FileText size={18} />All Documents</Link>
+        <Link to="/dashboard/archive"><Trash2 size={18} />Trash</Link>
+      </nav>
+      <section className="recent-documents"><p>Recent Documents</p>{recents.length ? recents.map((item) => <Link key={item.id} to={`/dashboard/write?edit=${item.id}`}><strong>{item.title}</strong><small>{item.updatedAt ? "Recently edited" : "Draft"}</small></Link>) : <span className="empty-recent">Your recent work will appear here.</span>}</section>
+      <div className="upgrade-card"><div><Sparkles size={18} /> <strong>Upgrade to Pro</strong></div><p>Unlock unlimited AI generations</p><Link to="/dashboard/upgrade">Upgrade Now</Link></div>
+      <div className="writer-profile"><span>{profile?.initials || getInitials(profile?.name) || "AR"}</span><div><strong>{profile?.name || "Alex Rivera"}</strong><small>{profile?.email || "alex@example.com"}</small></div><ChevronDown size={16} /></div>
+    </aside>
 
-  // Publishing is what the plan limits. An article that is already published
-  // holds a slot it has been counted for, so it is never blocked.
-  const alreadyPublished = existingArticle?.status === "Published";
-  const atPublishLimit = !alreadyPublished && Boolean(publishQuota?.reached);
-
-  return (
-    <Box sx={{ height: "100vh", display: "flex", flexDirection: "column", bgcolor: brandColors.dark }}>
-      {/*
-        Publishing headroom, explained before the author reaches for Publish.
-        Purely informational — the server refuses the transition whether or
-        not this banner rendered, and drafts are never blocked.
-      */}
-      {atPublishLimit && (
-        <Alert
-          role="status"
-          severity="warning"
-          variant="filled"
-          sx={{ borderRadius: 0 }}
-          action={
-            <Button component={Link} to="/dashboard/upgrade" size="small" sx={{ color: "inherit", fontWeight: 700 }}>
-              View plans
-            </Button>
-          }
-        >
-          You&apos;ve published all {publishQuota.limit} articles your plan allows. Saving
-          drafts still works — unpublish one or upgrade to publish this.
-        </Alert>
-      )}
-
-      {/* Top bar */}
-      <Stack
-        direction="row"
-        spacing={2}
-        sx={{ alignItems: "center", px: 2.5, py: 1.25, borderBottom: `1px solid ${brandColors.darkBorder}` }}
-      >
-        <Tooltip title="Go back" placement="bottom">
-          <IconButton
-            onClick={() => navigate(-1)}
-            size="small"
-            sx={{ color: "rgba(255,255,255,0.75)", border: `1px solid ${brandColors.darkBorder}`, borderRadius: 1.5, "&:hover": { bgcolor: "rgba(255,255,255,0.06)", color: "#fff" } }}
-          >
-            <ArrowLeft size={17} />
-          </IconButton>
-        </Tooltip>
-        <Typography component={Link} to="/dashboard" variant="h6" sx={{ color: "#fff", textDecoration: "none", whiteSpace: "nowrap" }}>
-          QuiLLora <Box component="span" sx={{ color: brandColors.mint }}>AI</Box>
-        </Typography>
-        <Box sx={{ width: "1px", height: 20, bgcolor: brandColors.darkBorder, display: { xs: "none", sm: "block" } }} />
-        <Typography
-          variant="caption"
-          sx={{ color: "rgba(255,255,255,0.55)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: { xs: "none", sm: "block" } }}
-        >
-          Document: {title}
-        </Typography>
-
-        <Box sx={{ flex: 1 }} />
-
-        <Stack direction="row" spacing={0.75} sx={{ alignItems: "center", color: "rgba(255,255,255,0.45)", display: { xs: "none", sm: "flex" } }}>
-          <Clock size={13} />
-          <Typography variant="caption">{saving ? "Saving…" : "Draft saved"}</Typography>
-        </Stack>
-        <Button
-          size="small"
-          onClick={handlePreview}
-          disabled={saving}
-          startIcon={<Eye size={15} />}
-          sx={{
-            color: "rgba(255,255,255,0.85)",
-            border: `1px solid ${brandColors.darkBorder}`,
-            px: 1.75,
-            "&:hover": { bgcolor: "rgba(255,255,255,0.06)" },
-          }}
-        >
-          Preview
-        </Button>
-        <Button
-          size="small"
-          onClick={handlePublish}
-          disabled={saving}
-          startIcon={<Send size={15} />}
-          sx={{ bgcolor: brandColors.mint, color: brandColors.dark, fontWeight: 700, px: 2, "&:hover": { bgcolor: "#25A67F" } }}
-        >
-          Publish
-        </Button>
-      </Stack>
-
-      <Box sx={{ flex: 1, display: "flex", minHeight: 0 }}>
-        {/* Left sidebar — structure / version history / notes */}
-        <Box
-          sx={{
-            width: 250,
-            flexShrink: 0,
-            display: { xs: "none", md: "flex" },
-            flexDirection: "column",
-            p: 2,
-            overflowY: "auto",
-            borderRight: `1px solid ${brandColors.darkBorder}`,
-          }}
-        >
-          <Typography sx={{ ...sectionLabel, mb: 1.5 }}>
-            <ListIcon size={12} style={{ verticalAlign: "-1px", marginRight: 6 }} />
-            Structure
-          </Typography>
-          <Stack spacing={0.25} sx={{ mb: 3 }}>
-            {outline.length ? (
-              outline.map((h, i) => (
-                /* Jump-to-heading entries. Were clickable Stacks, so the
-                   document outline could not be navigated from the keyboard
-                   at all. */
-                <Stack
-                  key={`${h.text}-${i}`}
-                  component="button"
-                  type="button"
-                  direction="row"
-                  spacing={1}
-                  onClick={() => scrollToHeading(i)}
-                  sx={{
-                    alignItems: "center",
-                    pl: 0.5 + (h.level - 1) * 1.5,
-                    py: 0.85,
-                    pr: 1,
-                    borderRadius: 1.5,
-                    cursor: "pointer",
-                    width: "100%",
-                    textAlign: "left",
-                    font: "inherit",
-                    border: 0,
-                    bgcolor: "transparent",
-                    color: i === 0 ? brandColors.mint : "rgba(255,255,255,0.6)",
-                    "&:hover": { color: "#fff", bgcolor: "rgba(255,255,255,0.06)" },
-                  }}
-                >
-                  <Box aria-hidden="true" sx={{ width: 5, height: 5, borderRadius: "50%", bgcolor: i === 0 ? brandColors.mint : "rgba(255,255,255,0.3)", flexShrink: 0 }} />
-                  {/* `span`: a button may only contain phrasing content. */}
-                  <Typography component="span" variant="body2" sx={{ fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    {h.text}
-                  </Typography>
-                </Stack>
-              ))
-            ) : (
-              <Typography variant="caption" sx={{ px: 0.5, color: "rgba(255,255,255,0.35)", fontStyle: "italic" }}>
-                Add headings to build your outline.
-              </Typography>
-            )}
-          </Stack>
-
-          <Typography sx={{ ...sectionLabel, mb: 1.5 }}>
-            <History size={12} style={{ verticalAlign: "-1px", marginRight: 6 }} />
-            Version History
-          </Typography>
-          <Stack spacing={1.5} sx={{ mb: 3 }}>
-            {[
-              { label: "Current Draft", meta: "just now · You", current: true },
-              { label: "Autosave", meta: "5 mins ago · You", current: false },
-            ].map((v) => (
-              <Stack key={v.label} direction="row" spacing={1.25} sx={{ alignItems: "flex-start" }}>
-                <Box
-                  sx={{
-                    width: 7,
-                    height: 7,
-                    borderRadius: "50%",
-                    mt: 0.5,
-                    flexShrink: 0,
-                    bgcolor: v.current ? brandColors.mint : "rgba(255,255,255,0.3)",
-                    boxShadow: v.current ? `0 0 0 3px rgba(45,212,191,0.2)` : "none",
-                  }}
-                />
-                <Box>
-                  <Typography variant="body2" sx={{ fontSize: 12.5, fontWeight: 600, color: "#fff" }}>
-                    {v.label}
-                  </Typography>
-                  <Typography variant="caption" sx={{ fontSize: 10.5, color: "rgba(255,255,255,0.4)" }}>
-                    {v.meta}
-                  </Typography>
-                </Box>
-              </Stack>
-            ))}
-          </Stack>
-
-          <Typography sx={{ ...sectionLabel, mb: 1.5 }}>
-            <StickyNote size={12} style={{ verticalAlign: "-1px", marginRight: 6 }} />
-            Notes
-          </Typography>
-          <Stack spacing={1} sx={{ mb: 1.5 }}>
-            {notes.map((n) => (
-              <Box
-                key={n.id}
-                sx={{ p: 1.25, borderRadius: 2, bgcolor: brandColors.darkCard, border: `1px solid ${brandColors.darkBorder}` }}
-              >
-                <Typography variant="caption" sx={{ display: "block", lineHeight: 1.6, color: "rgba(255,255,255,0.65)" }}>
-                  {n.text}
-                </Typography>
-              </Box>
-            ))}
-          </Stack>
-          <TextField
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), addNote())}
-            placeholder="Add a note..."
-            size="small"
-            multiline
-            fullWidth
-            sx={{
-              "& .MuiInputBase-root": { fontSize: 12.5, color: "#fff", bgcolor: brandColors.darkCard },
-              "& fieldset": { borderColor: brandColors.darkBorder },
-            }}
-          />
-
-          <Box sx={{ flex: 1 }} />
-
-          <Button
-            fullWidth
-            onClick={addNote}
-            startIcon={<Plus size={15} />}
-            sx={{ mt: 2, py: 1.1, bgcolor: brandColors.primary, color: "#fff", fontWeight: 700, "&:hover": { bgcolor: brandColors.primaryDark } }}
-          >
-            New Note
-          </Button>
-        </Box>
-
-        {/* Document area */}
-        <Box
-          ref={canvasRef}
-          sx={{
-            flex: 1,
-            minWidth: 0,
-            bgcolor: brandColors.bg,
-            overflowY: "auto",
-            position: "relative",
-            p: { xs: 1.5, sm: 3, md: 4 },
-          }}
-        >
-          <Box
-            sx={{
-              maxWidth: 820,
-              width: "100%",
-              mx: "auto",
-              bgcolor: "#ffffff",
-              borderRadius: 0,
-              boxShadow: "0 20px 60px rgba(0,0,0,0.45)",
-              p: { xs: 2.5, sm: 5, md: 6 },
-            }}
-          >
-            <InputBase
-              value={title}
-              onChange={(e) => {
-                // From here the title is the author's, not a default.
-                setTitleTouched(true);
-                setTitle(e.target.value);
-              }}
-              // An emptied title falls back to the next free default rather
-              // than a fixed "Untitled Article".
-              onBlur={() => !title.trim() && setTitle(nextUntitledTitle(getArticles()))}
-              inputProps={{ "aria-label": "Article title" }}
-              placeholder="Untitled"
-              fullWidth
-              multiline
-              sx={{
-                fontFamily: "'DM Serif Display', Georgia, serif",
-                fontWeight: 400,
-                fontSize: { xs: "1.6rem", sm: "2.25rem" },
-                lineHeight: 1.15,
-                color: "#0f172a",
-                "& textarea, & input": { p: 0 },
-              }}
-            />
-            <Stack direction="row" spacing={1.5} sx={{ alignItems: "center", mt: 1, mb: 3 }}>
-              <Typography variant="caption" sx={{ color: "#64748b" }}>
-                {existingArticle ? "Editing" : "Draft"}
-              </Typography>
-              <Box sx={{ width: 3, height: 3, borderRadius: "50%", bgcolor: "#94a3b8" }} />
-              <Typography variant="caption" sx={{ color: "#64748b" }}>
-                {new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
-              </Typography>
-            </Stack>
-
-            <Editor
-              // Remounts once the article being edited has loaded, so the
-              // editor picks up the fetched body as its initial content.
-              key={existingArticle?.id ?? "new"}
-              ref={editorRef}
-              initialContent={editorContent}
-              onCreate={handlePublish}
-              onUpdate={handleEditorUpdate}
-            />
-          </Box>
-
-          {/* Floating help (no AI) */}
-          <Stack spacing={1} sx={{ position: "fixed", right: { xs: 12, sm: 24 }, bottom: 24, zIndex: 20 }}>
-            <Tooltip title="Writing help" placement="left">
-              <IconButton
-                onClick={() => setToast({ severity: "info", message: "Support request sent — our editorial team will reach out at support@quillora.ai." })}
-                sx={{ bgcolor: brandColors.dark, color: "#fff", borderRadius: 2, boxShadow: 3, border: `1px solid ${brandColors.darkBorder}`, "&:hover": { bgcolor: brandColors.primaryDark } }}
-              >
-                <HelpCircle size={17} />
-              </IconButton>
-            </Tooltip>
-          </Stack>
-        </Box>
-
-        {/* Right sidebar — publishing / tags / metadata / collaborators */}
-        <Box
-          sx={{
-            width: 288,
-            flexShrink: 0,
-            display: { xs: "none", lg: "flex" },
-            flexDirection: "column",
-            p: 2,
-            overflowY: "auto",
-            borderLeft: `1px solid ${brandColors.darkBorder}`,
-          }}
-        >
-          <Typography sx={{ ...sectionLabel, mb: 1.5 }}>Publishing Settings</Typography>
-
-          {/* The caption reads as this control's label on screen but was not
-              wired to it, so the Select announced only its current value. */}
-          <Typography id="visibility-label" variant="caption" sx={{ color: "rgba(255,255,255,0.7)", mb: 0.75 }}>
-            Visibility
-          </Typography>
-          <Select
-            value={visibility}
-            onChange={(e) => setVisibility(e.target.value)}
-            size="small"
-            aria-labelledby="visibility-label"
-            startAdornment={<VisibilityIcon size={14} aria-hidden="true" style={{ marginRight: 8, color: brandColors.mint }} />}
-            sx={{
-              mb: 2,
-              color: "#fff",
-              bgcolor: brandColors.darkCard,
-              fontSize: 13,
-              "& .MuiOutlinedInput-notchedOutline": { borderColor: brandColors.darkBorder },
-              "& .MuiSvgIcon-root": { color: "rgba(255,255,255,0.6)" },
-            }}
-          >
-            {VISIBILITY.map((v) => (
-              <MenuItem key={v.value} value={v.value} sx={{ fontSize: 13 }}>{v.label}</MenuItem>
-            ))}
-          </Select>
-
-          <Stack direction="row" sx={{ alignItems: "center", justifyContent: "space-between", mb: 3 }}>
-            <Typography variant="body2" sx={{ fontSize: 13, color: "rgba(255,255,255,0.75)" }}>Allow Comments</Typography>
-            <Switch
-              checked={allowComments}
-              onChange={(e) => setAllowComments(e.target.checked)}
-              size="small"
-              sx={{ "& .Mui-checked": { color: brandColors.mint }, "& .Mui-checked + .MuiSwitch-track": { bgcolor: `${brandColors.mint} !important` } }}
-            />
-          </Stack>
-
-          <Typography sx={{ ...sectionLabel, mb: 1.5 }}>
-            <Tag size={12} style={{ verticalAlign: "-1px", marginRight: 6 }} />
-            Content Tags
-          </Typography>
-          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.75, mb: 1 }}>
-            {tags.map((t) => (
-              <Chip
-                key={t}
-                label={t}
-                size="small"
-                onDelete={() => setTags((prev) => prev.filter((x) => x !== t))}
-                deleteIcon={<X size={13} />}
-                sx={{ bgcolor: "rgba(45,212,191,0.12)", color: brandColors.mint, border: `1px solid rgba(45,212,191,0.3)`, "& .MuiChip-deleteIcon": { color: brandColors.mint } }}
-              />
-            ))}
-          </Box>
-          <TextField
-            value={tagDraft}
-            onChange={(e) => setTagDraft(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addTag())}
-            placeholder="+ Add tag"
-            size="small"
-            fullWidth
-            sx={{ mb: 3, "& .MuiInputBase-root": { fontSize: 12.5, color: "#fff", bgcolor: brandColors.darkCard }, "& fieldset": { borderColor: brandColors.darkBorder } }}
-          />
-
-          <Typography sx={{ ...sectionLabel, mb: 1.5 }}>Metadata</Typography>
-          <Typography variant="caption" sx={{ color: "rgba(255,255,255,0.55)", mb: 0.75 }}>SEO Title</Typography>
-          <TextField
-            value={seoTitle}
-            onChange={(e) => setSeoTitle(e.target.value)}
-            placeholder="Enter SEO optimized title..."
-            size="small"
-            fullWidth
-            sx={{ mb: 2, "& .MuiInputBase-root": { fontSize: 12.5, color: "#fff", bgcolor: brandColors.darkCard }, "& fieldset": { borderColor: brandColors.darkBorder } }}
-          />
-          <Typography variant="caption" sx={{ color: "rgba(255,255,255,0.55)", mb: 0.75 }}>Excerpt</Typography>
-          <TextField
-            value={excerpt}
-            onChange={(e) => setExcerpt(e.target.value)}
-            placeholder="Brief summary for social cards..."
-            size="small"
-            multiline
-            minRows={3}
-            fullWidth
-            sx={{ mb: 3, "& .MuiInputBase-root": { fontSize: 12.5, color: "#fff", bgcolor: brandColors.darkCard }, "& fieldset": { borderColor: brandColors.darkBorder } }}
-          />
-
-          <Typography sx={{ ...sectionLabel, mb: 1.5 }}>
-            <Users size={12} style={{ verticalAlign: "-1px", marginRight: 6 }} />
-            Collaborators
-          </Typography>
-          <Stack spacing={1.25} sx={{ mb: 1.5 }}>
-            {[
-              { name: profile.name, role: "You (Editor)", online: true },
-              { name: "Marcus Chen", role: "Viewed 15m ago", online: false },
-            ].map((c) => (
-              <Stack key={c.role} direction="row" spacing={1.25} sx={{ alignItems: "center" }}>
-                <Box
-                  sx={{
-                    width: 30,
-                    height: 30,
-                    borderRadius: "50%",
-                    bgcolor: c.online ? brandColors.primary : brandColors.darkCard,
-                    border: `1px solid ${brandColors.darkBorder}`,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: 11,
-                    fontWeight: 700,
-                    color: "#fff",
-                    flexShrink: 0,
-                  }}
-                >
-                  {getInitials(c.name)}
-                </Box>
-                <Box sx={{ minWidth: 0 }}>
-                  <Typography variant="body2" sx={{ fontSize: 12.5, fontWeight: 600, color: "#fff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    {c.name}
-                  </Typography>
-                  <Typography variant="caption" sx={{ fontSize: 10.5, color: c.online ? brandColors.mint : "rgba(255,255,255,0.4)" }}>
-                    {c.role}
-                  </Typography>
-                </Box>
-              </Stack>
-            ))}
-          </Stack>
-          <Button
-            startIcon={<UserPlus size={14} />}
-            onClick={() => setToast({ severity: "info", message: "Invite link copied to clipboard (demo)." })}
-            sx={{ justifyContent: "flex-start", color: brandColors.mint, fontSize: 12.5, px: 0.5, mb: 3, "&:hover": { bgcolor: "rgba(45,212,191,0.08)" } }}
-          >
-            Invite Collaborator
-          </Button>
-
-          <Box sx={{ flex: 1 }} />
-
-          {/* Reading stats (word count / read time / reading ease) */}
-          <Box sx={{ p: 1.75, borderRadius: 2, bgcolor: brandColors.darkCard, border: `1px solid ${brandColors.darkBorder}` }}>
-            <Stack direction="row" spacing={1} sx={{ mb: 1.5 }}>
-              {[
-                { label: "WORDS", value: stats.words.toLocaleString() },
-                { label: "READ", value: `${readingMinutes}m` },
-              ].map((s) => (
-                <Box key={s.label} sx={{ flex: 1 }}>
-                  <Typography sx={{ fontSize: 9, letterSpacing: 1, color: "rgba(255,255,255,0.4)" }}>{s.label}</Typography>
-                  <Typography sx={{ fontFamily: "'Inter', sans-serif", fontWeight: 800, fontSize: 18, color: "#fff" }}>{s.value}</Typography>
-                </Box>
-              ))}
-            </Stack>
-            <Stack direction="row" sx={{ justifyContent: "space-between", mb: 0.75 }}>
-              <Typography sx={{ fontSize: 9, letterSpacing: 1, color: "rgba(255,255,255,0.4)" }}>READING EASE</Typography>
-              <Typography sx={{ fontSize: 11, fontWeight: 700, color: brandColors.mint }}>{stats.ease}/100</Typography>
-            </Stack>
-            <Box sx={{ height: 5, borderRadius: 999, bgcolor: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
-              <Box sx={{ height: "100%", width: `${stats.ease}%`, bgcolor: brandColors.mint, borderRadius: 999, transition: "width 0.3s ease" }} />
-            </Box>
-          </Box>
-        </Box>
-      </Box>
-
-      <Snackbar
-        open={Boolean(toast)}
-        autoHideDuration={3500}
-        onClose={() => setToast(null)}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-      >
-        {toast && (
-          <Alert role={toast.severity === "error" ? "alert" : "status"} severity={toast.severity} variant="filled" onClose={() => setToast(null)} sx={{ borderRadius: 2 }}>
-            {toast.message}
-          </Alert>
-        )}
-      </Snackbar>
-    </Box>
-  );
+    <section className="writer-workspace">
+      <header className="writer-topbar">
+        <div className="document-name"><InputBase value={title} onChange={(e) => setTitle(e.target.value)} inputProps={{ "aria-label": "Document title" }} /><Pencil size={16} /></div>
+        <div className="save-state"><CheckCircle2 size={16} />{saving ? "Saving…" : "Saved just now"}</div>
+        <div className="top-actions"><Tooltip title="Toggle appearance"><IconButton onClick={toggleMode}><Moon size={19} /></IconButton></Tooltip><Button className="export-button" endIcon={<ChevronDown size={16} />} onClick={(e) => setMenuAnchor(e.currentTarget)}>Export</Button><Button className="publish-button" onClick={publish} disabled={saving}>Publish</Button></div>
+      </header>
+      <Menu anchorEl={menuAnchor} open={Boolean(menuAnchor)} onClose={() => setMenuAnchor(null)}><MenuItem onClick={() => { setMenuAnchor(null); persist(); }}><Download size={16} />&nbsp; Save as draft</MenuItem><MenuItem onClick={() => { setMenuAnchor(null); window.print(); }}><FileText size={16} />&nbsp; Print document</MenuItem></Menu>
+      <div className="writer-body">
+        <section className="document-panel"><Editor key={article?.id || "new"} ref={editorRef} initialContent={content} onUpdate={({ text }) => setWordCount(wordsOf(text))} /></section>
+        <aside className={`assistant-panel ${assistantOpen ? "" : "collapsed"}`}>
+          <div className="assistant-heading"><button type="button" aria-label={assistantOpen ? "Collapse AI Assistant" : "Open AI Assistant"} aria-expanded={assistantOpen} onClick={() => setAssistantOpen((value) => !value)}><span><Sparkles size={20} />AI Assistant</span>{assistantOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}</button>{assistantOpen && <button type="button" className="new-chat-button" onClick={startNewChat}><Plus size={15} />New Chat</button>}</div>
+          {assistantOpen && <div className="assistant-content">
+            <div className="chat-messages" aria-live="polite">
+              {!conversation.length && <div className="chat-welcome"><Sparkles size={25} /><h3>Ask AI anything...</h3><p>Get ideas, draft content, improve writing, or summarize selected text.</p><div className="welcome-actions"><AssistantAction icon={<WandSparkles />} title="Generate Ideas" copy="Get topic ideas" onClick={() => handleAssistantAction("generateIdeas", "Generate several fresh article ideas about this document")} /><AssistantAction icon={<PenLine />} title="Write Paragraph" copy="Expand your content" onClick={() => handleAssistantAction("writeParagraph", "Write an engaging paragraph for this document")} /><AssistantAction icon={<Pencil />} title="Improve Writing" copy="Enhance clarity & tone" onClick={() => handleAssistantAction("improveWriting", "Improve the selected writing for clarity and tone")} /><AssistantAction icon={<ListCollapse />} title="Summarize" copy="Shorten selected content" onClick={() => handleAssistantAction("summarize", "Summarize the selected text")} /></div></div>}
+              {conversation.map((message) => <ChatMessage key={message.id} message={message} onInsert={insertAtCursor} />)}
+              {assistantLoading && <div className="chat-message assistant"><div className="chat-bubble typing-indicator"><span /><span /><span />AI is thinking</div></div>}
+              <div ref={chatEndRef} />
+            </div>
+            <div className="chat-composer"><textarea ref={chatInputRef} id="ai-prompt" value={prompt} onChange={(e) => setPrompt(e.target.value)} onKeyDown={handleChatKeyDown} maxLength="2000" placeholder="Ask AI anything..." disabled={assistantLoading} /><div><small>{prompt.length}/2000</small><button type="button" aria-label="Send AI prompt" disabled={assistantLoading || !prompt.trim()} onClick={() => handleAssistantAction()}><Send size={17} /></button></div></div>
+            <small className="assistant-note">AI can make mistakes. Always review the content.</small>
+          </div>}
+        </aside>
+      </div>
+      <footer className="writer-footer">{wordCount} {wordCount === 1 ? "word" : "words"}<button type="button" onClick={() => setToast({ severity: "info", message: "Try typing / in the editor for quick commands." })}><CircleHelp size={16} />Help</button></footer>
+    </section>
+    <Snackbar open={Boolean(toast)} autoHideDuration={3200} onClose={() => setToast(null)}><Alert severity={toast?.severity} onClose={() => setToast(null)}>{toast?.message}</Alert></Snackbar>
+  </main>;
 };
+
+function AssistantAction({ icon, title, copy, onClick }) { return <button type="button" className="assistant-action" onClick={onClick}><span>{icon}</span><div><strong>{title}</strong><small>{copy}</small></div></button>; }
+
+class MarkdownMessageBoundary extends Component {
+  constructor(props) { super(props); this.state = { failed: false }; }
+  static getDerivedStateFromError() { return { failed: true }; }
+  render() {
+    return this.state.failed
+      ? <p>Your response is ready. Click <strong>Insert into editor</strong> to add it to your document.</p>
+      : this.props.children;
+  }
+}
+
+function ChatMessage({ message, onInsert }) {
+  return <div className={`chat-message ${message.role}`}><div className="chat-bubble">{message.role === "assistant" ? <><MarkdownMessageBoundary><ReactMarkdown className="markdown-content" remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeHighlight]}>{message.content}</ReactMarkdown></MarkdownMessageBoundary><Button size="small" variant="outlined" className="assistant-insert" onClick={() => onInsert(message.content)}>Insert into editor</Button></> : <p>{message.content}</p>}</div><time>{message.timestamp}</time></div>;
+}
+
+export default Write;

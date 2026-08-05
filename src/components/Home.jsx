@@ -64,10 +64,7 @@ const navSections = [
     label: "MAIN",
     items: [
       { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard", end: true },
-      { icon: PenLine, label: "Write Article", path: "/dashboard/write" },
-      { icon: Sparkles, label: "AI Writer", path: "/dashboard/ai-writer", badge: "NEW" },
-      // The count was hardcoded to "128"; it now comes from the author's real
-      // totals and is simply omitted until they have loaded.
+      { icon: PenLine, label: "Editor", path: "/dashboard/write" },
       { icon: BookOpen, label: "My Articles", path: "/dashboard/my-article", countKey: "articles" },
       { icon: BarChart3, label: "Analytics", path: "/dashboard/analytics" },
     ],

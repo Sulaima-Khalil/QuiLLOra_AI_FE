@@ -4,12 +4,15 @@ const RADIUS = 42;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
 export default function SeoSidebar({
-  score,
-  keywordDensity,
-  keywordDensityPct,
-  readability,
-  readabilityLabel,
-  revisions,
+  score = 80,
+  keywordDensity = "1.8% (Target: 1.5 - 2.5%)",
+  keywordDensityPct = 70,
+  readability = 72,
+  readabilityLabel = "72/100 · Easy",
+  revisions = [
+    { title: "Current Draft", sub: "just now · You", current: true },
+    { title: "Autosave", sub: "5 mins ago · You", current: false },
+  ],
   onPublishToWeb,
   onExport,
   onPublishNow,

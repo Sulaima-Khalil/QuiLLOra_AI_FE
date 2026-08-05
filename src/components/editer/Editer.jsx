@@ -6,7 +6,9 @@ import { Placeholder } from '@tiptap/extension-placeholder';
 import { TextStyle } from '@tiptap/extension-text-style';
 import { Underline } from '@tiptap/extension-underline';
 import { Image } from '@tiptap/extension-image';
+import { Link } from '@tiptap/extension-link';
 import { TextAlign } from '@tiptap/extension-text-align';
+import { Table, TableRow, TableHeader, TableCell } from '@tiptap/extension-table';
 import { FontSize } from './FontSize';
 import ToolBar from './Toolbar';
 import './Editor.css';
@@ -19,14 +21,22 @@ const Editor = forwardRef(function Editor({ initialContent, onCreate, onUpdate }
       TextStyle,
       Underline,
       Image,
+      Link.configure({ openOnClick: false }),
+      Table.configure({ resizable: true }),
+      TableRow,
+      TableHeader,
+      TableCell,
       FontSize,
       TextAlign.configure({ types: ["heading", "paragraph"] }),
       Placeholder.configure({
-        placeholder: "Start writing here...",
+        placeholder: "Type / for commands or start writing...",
         showOnlyWhenEditable: true,
       }),
     ],
     content: initialContent || "",
+    onCreate: ({ editor: ed }) => {
+      if (onCreate) onCreate(ed);
+    },
     onUpdate: ({ editor: ed }) => {
       if (!onUpdate) return;
       const text = ed.getText();
@@ -43,7 +53,13 @@ const Editor = forwardRef(function Editor({ initialContent, onCreate, onUpdate }
   useImperativeHandle(ref, () => ({
     getHTML: () => editor?.getHTML() || "",
     isEmpty: () => editor?.isEmpty ?? true,
-    insertContent: (html) => editor?.chain().focus("end").insertContent(html).run(),
+    getSelectedText: () => {
+      if (!editor) return "";
+      const { from, to } = editor.state.selection;
+      return editor.state.doc.textBetween(from, to, "");
+    },
+    insertContent: (html) => editor?.chain().focus().insertContent(html).run(),
+    setContent: (html) => editor?.commands.setContent(html),
   }), [editor]);
 
   return (

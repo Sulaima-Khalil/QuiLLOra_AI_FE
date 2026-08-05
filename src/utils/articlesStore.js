@@ -35,6 +35,10 @@ const emit = () => window.dispatchEvent(new Event(CHANGE_EVENT));
  * Derived from the id, so a given article always gets the same picture.
  */
 const withCover = (article) => {
+  if (!article || typeof article !== "object") {
+    throw new Error("The server returned an invalid article.");
+  }
+
   if (article.img) return article;
 
   const key = String(article.id ?? "");
@@ -86,6 +90,7 @@ export const getArticleById = (id) => snapshot.find((article) => article.id === 
 /** Full article including its HTML body, fetched fresh for the editor. */
 export const fetchArticleById = async (id) => {
   const data = unwrap(await api.get(`/articles/${id}`));
+  if (!data?.article) throw new Error("Article not found.");
   return withCover(data.article);
 };
 
@@ -100,6 +105,7 @@ export const fetchArticleById = async (id) => {
  */
 export const fetchPublicArticle = async (id) => {
   const data = unwrap(await api.get(`/articles/${id}`));
+  if (!data?.article) throw new Error("Article not found.");
   return { article: withCover(data.article), isOwner: Boolean(data.isOwner) };
 };
 
@@ -139,14 +145,28 @@ export const createArticle = async ({
     }),
   );
 
-  await refreshArticles();
-  return withCover(data.article);
+  const article = withCover(data?.article);
+  // A cache refresh is helpful, but it must not turn a successfully-created
+  // article into a failed publish when the follow-up list request is flaky.
+  refreshArticles().catch(() => {});
+  return article;
 };
 
 /** Applies a partial update and refreshes the cache. */
 export const updateArticle = async (id, partial) => {
-  await api.put(`/articles/${id}`, partial);
-  return refreshArticles();
+  const data = unwrap(await api.put(`/articles/${id}`, partial));
+  const updatedArticle = data?.article ? withCover(data.article) : null;
+  try {
+    await refreshArticles();
+  } catch {
+    // The write succeeded; keep the editor usable even if refreshing the
+    // sidebar's cached list did not.
+    if (updatedArticle) return updatedArticle;
+    return withCover({ ...getArticleById(id), ...partial, id });
+  }
+  // Keep callers on an article object. Returning the refreshed array made the
+  // editor lose its id after its first update and broke subsequent saves.
+  return updatedArticle ?? withCover(getArticleById(id));
 };
 
 export const archiveArticle = async (id) => {

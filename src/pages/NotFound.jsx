@@ -2,6 +2,7 @@ import { Box, Typography, Button, Stack } from "@mui/material";
 import { Link } from "react-router-dom";
 import { Compass } from "lucide-react";
 import { brandColors } from "../theme/muiTheme";
+import Logo from "../components/Logo";
 
 const NotFound = () => {
   return (
@@ -22,6 +23,9 @@ const NotFound = () => {
           alignItems: "center",
           maxWidth: 420
         }}>
+        <Link to="/" aria-label="QuiLLora AI home">
+          <Logo size="md" />
+        </Link>
         <Box
           sx={{
             width: 64,
