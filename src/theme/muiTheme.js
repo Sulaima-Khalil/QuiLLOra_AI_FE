@@ -97,7 +97,7 @@ export const createAppTheme = () => {
       h6: { fontFamily: "'DM Serif Display', Georgia, serif", fontWeight: 400 },
       button: { fontFamily: "'Manrope', sans-serif", fontWeight: 600, textTransform: "none" },
     },
-    shadows: shadowStack(0.35),
+    shadows: shadowStack(0.16),
     components: {
       MuiCssBaseline: {
         styleOverrides: {

@@ -3,7 +3,6 @@ import { Link, Navigate, useLocation, useNavigate, useSearchParams } from "react
 import { ArrowLeft, ArrowRight, Mail, Timer } from "lucide-react";
 import { requestPasswordReset, verifyResetCode } from "../utils/auth";
 import { getResetEmail, rememberResetEmail } from "../utils/resetFlow";
-import AuthShowcase from "../components/auth/AuthShowcase";
 import QuilloraMark from "../components/brand/QuilloraMark";
 import RecoverySteps from "../components/auth/RecoverySteps";
 import "../components/auth/auth.css";
@@ -154,11 +153,9 @@ export default function VerifyResetCode() {
   if (!email) return <Navigate to="/forgot-password" replace />;
 
   return (
-    <div className="auth">
-      <AuthShowcase variant="recovery" step={2} />
-
+    <div className="auth auth-compact">
       <main className="auth-panel">
-        <div className="auth-card">
+        <div className="auth-card recovery-card">
           <div className="card-head">
             <Link to="/forgot-password" className="card-back" aria-label="Back to email step">
               <ArrowLeft size={17} />

@@ -1,22 +1,17 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Eye, EyeOff, ArrowRight, Mail, Lock, Github, Check } from "lucide-react";
-import { loginUser, getAuthProviders, startOAuth } from "../utils/auth";
-import AuthShowcase, { GoogleIcon } from "../components/auth/AuthShowcase";
+import { Eye, EyeOff, ArrowRight, Mail, Lock, Check } from "lucide-react";
+import { loginUser } from "../utils/auth";
 import QuilloraMark from "../components/brand/QuilloraMark";
 import "../components/auth/auth.css";
 
 export default function Login() {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const [providers, setProviders] = useState([]);
-
-  useEffect(() => {
-    getAuthProviders().then(setProviders);
-  }, []);
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
@@ -25,7 +20,7 @@ export default function Login() {
     setError("");
     setLoading(true);
     try {
-      await loginUser({ email: formData.email, password: formData.password });
+      await loginUser({ email: formData.email, password: formData.password, rememberMe });
       navigate("/dashboard");
     } catch (err) {
       setError(err.response?.data?.message || "Something went wrong. Please try again.");
@@ -35,11 +30,9 @@ export default function Login() {
   };
 
   return (
-    <div className="auth">
-      <AuthShowcase variant="login" />
-
+    <div className="auth auth-compact">
       <main className="auth-panel">
-        <div className="auth-card">
+        <div className="auth-card login-card">
           <Link to="/" className="card-brand">
             <QuilloraMark size={34} />
             <span className="word">QuiLLora <b>AI</b></span>
@@ -69,12 +62,7 @@ export default function Login() {
             </div>
 
             <div className="field">
-              <div className="field-row">
-                <label className="field-label" htmlFor="password">Password</label>
-                <Link to="/forgot-password" className="link-accent" style={{ fontSize: 12.5 }}>
-                  Forgot password?
-                </Link>
-              </div>
+              <label className="field-label" htmlFor="password">Password</label>
               <div className="field-wrap">
                 <Lock className="lead" size={17} />
                 <input
@@ -99,42 +87,26 @@ export default function Login() {
               </div>
             </div>
 
-            <label className="check remember">
-              <input type="checkbox" defaultChecked />
-              <span className="box"><Check size={12} strokeWidth={3} /></span>
-              <span className="txt">Remember this session for 30 days</span>
-            </label>
+            <div className="auth-options">
+              <label className="check remember">
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(event) => setRememberMe(event.target.checked)}
+                />
+                <span className="box"><Check size={12} strokeWidth={3} /></span>
+                <span className="txt">Keep me logged in</span>
+              </label>
+              <Link to="/forgot-password" className="link-accent password-reset-link">
+                Forgot password?
+              </Link>
+            </div>
 
             <button type="submit" className="btn-primary" disabled={loading}>
               {loading ? "Signing in…" : "Sign in to workspace"}
               {!loading && <ArrowRight size={17} />}
             </button>
           </form>
-
-          <div className="auth-divider">OR CONTINUE WITH</div>
-
-          <div className="social-row">
-            {/* Rendered only when the backend has credentials for the provider,
-                so a button never leads to a 503. */}
-            <button
-              type="button"
-              className="btn-social"
-              onClick={() => startOAuth("google")}
-              disabled={!providers.includes("google")}
-              title={providers.includes("google") ? "Continue with Google" : "Google sign-in is not configured"}
-            >
-              <GoogleIcon /> Google
-            </button>
-            <button
-              type="button"
-              className="btn-social"
-              onClick={() => startOAuth("github")}
-              disabled={!providers.includes("github")}
-              title={providers.includes("github") ? "Continue with GitHub" : "GitHub sign-in is not configured"}
-            >
-              <Github size={16} /> GitHub
-            </button>
-          </div>
 
           <p className="auth-switch">
             New to QuiLLora? <Link to="/register" className="link-accent">Create your account</Link>

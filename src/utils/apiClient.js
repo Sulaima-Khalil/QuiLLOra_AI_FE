@@ -116,12 +116,26 @@ api.interceptors.response.use(
 
 const SESSION_KEY = "quillora_session";
 
-export const setSessionFlag = (user) => {
+export const setSessionFlag = (user, rememberMe = true) => {
+  const value = JSON.stringify({ id: user?.id, name: user?.name, at: Date.now() });
   try {
-    localStorage.setItem(SESSION_KEY, JSON.stringify({ id: user?.id, name: user?.name, at: Date.now() }));
+    (rememberMe ? localStorage : sessionStorage).setItem(SESSION_KEY, value);
   } catch {
     // Storage unavailable (private mode, quota) — the app still works, the
     // guards just fall back to a server round-trip.
+  }
+  try {
+    (rememberMe ? sessionStorage : localStorage).removeItem(SESSION_KEY);
+  } catch {
+    // Ignore unavailable secondary storage.
+  }
+};
+
+export const hasPersistentSessionFlag = () => {
+  try {
+    return Boolean(localStorage.getItem(SESSION_KEY));
+  } catch {
+    return false;
   }
 };
 
@@ -134,13 +148,22 @@ export function clearSessionFlag() {
   } catch {
     // Ignore.
   }
+  try {
+    sessionStorage.removeItem(SESSION_KEY);
+  } catch {
+    // Ignore.
+  }
 }
 
 export const hasSessionFlag = () => {
   try {
-    return Boolean(localStorage.getItem(SESSION_KEY));
+    return Boolean(localStorage.getItem(SESSION_KEY) || sessionStorage.getItem(SESSION_KEY));
   } catch {
-    return false;
+    try {
+      return Boolean(sessionStorage.getItem(SESSION_KEY));
+    } catch {
+      return false;
+    }
   }
 };
 

@@ -19,7 +19,6 @@ import { brandColors } from "@/theme/muiTheme";
 const navLinks = [
   { label: "Features", href: "#features" },
   { label: "Categories", href: "#categories" },
-  { label: "Writers", href: "#writers" },
   { label: "Pricing", href: "#pricing" },
 ];
 

@@ -3,7 +3,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { Mail, ArrowRight, ArrowLeft, ShieldCheck } from "lucide-react";
 import { requestPasswordReset } from "../utils/auth";
 import { rememberResetEmail } from "../utils/resetFlow";
-import AuthShowcase from "../components/auth/AuthShowcase";
 import QuilloraMark from "../components/brand/QuilloraMark";
 import RecoverySteps from "../components/auth/RecoverySteps";
 import "../components/auth/auth.css";
@@ -34,11 +33,9 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="auth">
-      <AuthShowcase variant="recovery" step={1} />
-
+    <div className="auth auth-compact">
       <main className="auth-panel">
-        <div className="auth-card">
+        <div className="auth-card recovery-card">
           <div className="card-head">
             <Link to="/login" className="card-back" aria-label="Back to login">
               <ArrowLeft size={17} />

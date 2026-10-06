@@ -3,7 +3,6 @@ import { Link, useLocation, useNavigate, useSearchParams } from "react-router-do
 import { Lock, ArrowRight, ArrowLeft, Eye, EyeOff, Check, ShieldCheck } from "lucide-react";
 import { resetPassword } from "../utils/auth";
 import { forgetResetEmail, getResetEmail } from "../utils/resetFlow";
-import AuthShowcase from "../components/auth/AuthShowcase";
 import QuilloraMark from "../components/brand/QuilloraMark";
 import RecoverySteps from "../components/auth/RecoverySteps";
 import "../components/auth/auth.css";
@@ -71,11 +70,9 @@ export default function ResetPassword() {
   const backState = token ? {} : { state: { email } };
 
   return (
-    <div className="auth">
-      <AuthShowcase variant="recovery" step={3} />
-
+    <div className="auth auth-compact">
       <main className="auth-panel">
-        <div className="auth-card">
+        <div className="auth-card recovery-card">
           <div className="card-head">
             <Link to={backTo} {...backState} className="card-back" aria-label="Back to previous step">
               <ArrowLeft size={17} />

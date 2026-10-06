@@ -356,4 +356,21 @@ describe("apiClient — session flag", () => {
     expect(JSON.stringify(stored)).not.toContain("demo1234");
     expect(JSON.stringify(stored)).not.toContain("alex@inkflow.ai");
   });
+
+  it("keeps an unchecked remember choice in tab-scoped storage", async () => {
+    localStorage.clear();
+    sessionStorage.clear();
+    const { adapter } = makeAdapter(() => ({ status: 200, data: {} }));
+    const mod = await load(adapter);
+
+    mod.setSessionFlag({ id: "u1", name: "Alex" }, false);
+
+    expect(localStorage.getItem("quillora_session")).toBeNull();
+    expect(sessionStorage.getItem("quillora_session")).not.toBeNull();
+    expect(mod.hasSessionFlag()).toBe(true);
+    expect(mod.hasPersistentSessionFlag()).toBe(false);
+
+    mod.clearSessionFlag();
+    expect(sessionStorage.getItem("quillora_session")).toBeNull();
+  });
 });

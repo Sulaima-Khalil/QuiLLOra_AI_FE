@@ -1,6 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Check, ArrowRight, ShieldCheck } from "lucide-react";
-import AuthShowcase from "../components/auth/AuthShowcase";
 import QuilloraMark from "../components/brand/QuilloraMark";
 import RecoverySteps from "../components/auth/RecoverySteps";
 import "../components/auth/auth.css";
@@ -10,11 +9,9 @@ export default function ResetSuccess() {
   const navigate = useNavigate();
 
   return (
-    <div className="auth">
-      <AuthShowcase variant="recovery" step={3} />
-
+    <div className="auth auth-compact">
       <main className="auth-panel">
-        <div className="auth-card done-wrap">
+        <div className="auth-card recovery-card done-wrap">
           <div className="card-head" style={{ justifyContent: "center" }}>
             <Link to="/" className="card-brand">
               <QuilloraMark size={34} />

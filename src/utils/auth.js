@@ -1,4 +1,4 @@
-import api, { clearSessionFlag, errorMessage, hasSessionFlag, setSessionFlag, unwrap } from "./apiClient";
+import api, { clearSessionFlag, errorMessage, hasPersistentSessionFlag, hasSessionFlag, setSessionFlag, unwrap } from "./apiClient";
 import { setProfile, clearProfile } from "./profileStore";
 import { resetSubscription } from "./planStore";
 
@@ -51,12 +51,12 @@ export const registerUser = async ({ name, email, password, username, country, n
 };
 
 // Login
-export const loginUser = async ({ email, password }) => {
+export const loginUser = async ({ email, password, rememberMe = true }) => {
   try {
-    const response = await api.post("/auth/login", { email, password });
+    const response = await api.post("/auth/login", { email, password, rememberMe });
 
     const data = unwrap(response);
-    setSessionFlag(data.user);
+    setSessionFlag(data.user, rememberMe);
     setProfile(data.user);
 
     return { token: data.accessToken, user: data.user };
@@ -92,10 +92,11 @@ export const isAuthenticated = () => hasSessionFlag();
  */
 export const restoreSession = async () => {
   if (!hasSessionFlag()) return null;
+  const rememberMe = hasPersistentSessionFlag();
 
   try {
     const data = unwrap(await api.get("/auth/me"));
-    setSessionFlag(data.user);
+    setSessionFlag(data.user, rememberMe);
     setProfile(data.user);
     return data.user;
   } catch {
